@@ -17,10 +17,14 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      document.cookie = 'token=; path=/; max-age=0';
-      window.location.href = '/login';
+      const authPages = ['/login', '/register', '/verify'];
+      const onAuthPage = authPages.some((p) => window.location.pathname.startsWith(p));
+      if (!onAuthPage) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        document.cookie = 'token=; path=/; max-age=0';
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

@@ -48,10 +48,9 @@ export class OrdersService {
       subtotal += total;
     }
 
-    const tax = subtotal * 0.1;
     order.subtotal = subtotal;
-    order.tax = tax;
-    order.total = subtotal + tax;
+    order.tax = 0;
+    order.total = subtotal;
 
     const saved = await this.orderRepo.save(order);
 

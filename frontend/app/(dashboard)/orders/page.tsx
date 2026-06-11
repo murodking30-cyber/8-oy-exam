@@ -232,8 +232,6 @@ export default function OrdersPage() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div><span className="text-gray-500">Mijoz:</span> <span className="font-medium ml-1">{viewModal.customer?.name}</span></div>
               <div><span className="text-gray-500">Holat:</span> <span className="ml-1"><Badge value={viewModal.status} /></span></div>
-              <div><span className="text-gray-500">Subtotal:</span> <span className="font-medium ml-1">${Number(viewModal.subtotal).toFixed(2)}</span></div>
-              <div><span className="text-gray-500">Soliq (10%):</span> <span className="font-medium ml-1">${Number(viewModal.tax).toFixed(2)}</span></div>
               <div><span className="text-gray-500">Jami:</span> <span className="font-bold text-lg ml-1">${Number(viewModal.total).toFixed(2)}</span></div>
             </div>
             <div>

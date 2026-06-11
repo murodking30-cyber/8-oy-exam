@@ -142,7 +142,12 @@ export class AuthService {
     }
 
     if (!user.isVerified) {
-      throw new UnauthorizedException('Avval tasdiqlash kodini kiriting');
+      // Legacy users created before email verification was added have no pending code
+      if (!user.verificationCode) {
+        await this.userRepo.update({ id: user.id }, { isVerified: true });
+      } else {
+        throw new UnauthorizedException('Avval tasdiqlash kodini kiriting');
+      }
     }
 
     const valid = await bcrypt.compare(dto.password, (user as any).password);

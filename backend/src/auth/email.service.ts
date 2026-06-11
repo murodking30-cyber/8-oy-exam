@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
@@ -9,28 +9,18 @@ export class EmailService {
   constructor(private readonly config: ConfigService) {}
 
   async sendEmailCode(to: string, code: string): Promise<void> {
-    const emailUser = this.config.get<string>('EMAIL_USER');
-    const emailPass = this.config.get<string>('EMAIL_PASS');
+    const apiKey = this.config.get<string>('RESEND_API_KEY');
 
-    if (!emailUser || !emailPass) {
-      this.logger.warn('📧 [DEV] EMAIL sozlanmagan — kod consolega chiqarilmoqda');
+    if (!apiKey) {
       this.logger.log(`📧 [DEV] Email: ${to} | Tasdiqlash kodi: ${code}`);
       return;
     }
 
     try {
-      const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        requireTLS: true,
-        family: 4,
-        auth: { user: emailUser, pass: emailPass },
-      } as any);
-
-      await transporter.sendMail({
-        from: `"Qurilish CRM" <${emailUser}>`,
-        to,
+      const resend = new Resend(apiKey);
+      await resend.emails.send({
+        from: 'Qurilish CRM <onboarding@resend.dev>',
+        to: [to],
         subject: 'Tasdiqlash kodi — Qurilish CRM',
         html: `
           <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden">
@@ -44,15 +34,13 @@ export class EmailService {
                 <span style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#4f46e5">${code}</span>
               </div>
               <p style="color:#64748b;font-size:13px;margin:0">Ushbu kod <strong>10 daqiqa</strong> davomida amal qiladi.</p>
-              <p style="color:#94a3b8;font-size:12px;margin:16px 0 0">Agar siz ro'yxatdan o'tmagan bo'lsangiz, ushbu xabarni e'tiborsiz qoldiring.</p>
             </div>
           </div>
         `,
       });
-
-      this.logger.log(`📧 Tasdiqlash kodi ${to} ga yuborildi`);
+      this.logger.log(`📧 Kod ${to} ga yuborildi`);
     } catch (err) {
-      this.logger.error(`📧 Email yuborishda xatolik: ${(err as Error).message}`);
+      this.logger.error(`📧 Xatolik: ${(err as Error).message}`);
       this.logger.log(`📧 [FALLBACK] Email: ${to} | Tasdiqlash kodi: ${code}`);
     }
   }

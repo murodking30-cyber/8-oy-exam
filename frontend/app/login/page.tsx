@@ -32,10 +32,6 @@ export default function LoginPage() {
       router.replace('/dashboard');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      if (msg === 'Avval tasdiqlash kodini kiriting') {
-        router.replace(`/verify?contact=${encodeURIComponent(email.trim())}`);
-        return;
-      }
       setError(msg ?? "Email yoki parol noto'g'ri.");
     } finally {
       setLoading(false);

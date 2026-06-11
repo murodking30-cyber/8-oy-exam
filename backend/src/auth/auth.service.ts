@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -115,10 +114,6 @@ export class AuthService {
     const user = await this.findByEmailOrPhone(dto.emailOrPhone, true);
     if (!user || !user.isActive) {
       throw new UnauthorizedException("Elektron pochta/telefon yoki parol noto'g'ri");
-    }
-
-    if (!user.isVerified) {
-      throw new ForbiddenException('Avval tasdiqlash kodini kiriting');
     }
 
     const valid = await bcrypt.compare(dto.password, (user as any).password);

@@ -53,19 +53,15 @@ export class AuthService {
       phone: dto.phone,
       password: hashed,
       role,
-      isVerified: false,
-      verificationCode: code,
-      verificationCodeExpiresAt: expiresAt,
+      isVerified: true,
     });
-    await this.userRepo.save(user);
-
-    // Send verification codes (console fallback in dev)
-    await this.emailService.sendEmailCode(dto.email, code);
-    await this.emailService.sendSmsCode(dto.phone, code);
+    const saved = await this.userRepo.save(user);
+    const token = this.sign(saved);
 
     return {
-      message: 'Tasdiqlash kodi yuborildi. Elektron pochta yoki telefoningizni tekshiring.',
-      contact: dto.email,
+      message: "Ro'yxatdan muvaffaqiyatli o'tdingiz!",
+      user: this.stripSensitive(saved),
+      token,
     };
   }
 

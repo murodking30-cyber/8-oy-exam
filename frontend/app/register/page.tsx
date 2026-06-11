@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { HardHat, Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import api from '../../lib/axios';
-import type { RegisterResponse } from '../../types';
+import { useAuthStore } from '../../store/authStore';
+import type { AuthResponse } from '../../types';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const setAuth = useAuthStore((s) => s.setAuth);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -31,14 +33,15 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await api.post<RegisterResponse>('/auth/register', {
+      const res = await api.post<AuthResponse>('/auth/register', {
         fullName: fullName.trim(),
         email: email.trim(),
         phone: phone.trim(),
         password,
       });
-      setSuccess("Ro'yxatdan o'tish muvaffaqiyatli! Kirish sahifasiga yo'naltirilmoqda...");
-      setTimeout(() => router.replace('/login'), 1500);
+      setAuth(res.data.user, res.data.token);
+      setSuccess("Ro'yxatdan o'tish muvaffaqiyatli!");
+      setTimeout(() => router.replace('/dashboard'), 800);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg ?? "Ro'yxatdan o'tishda xatolik yuz berdi.");

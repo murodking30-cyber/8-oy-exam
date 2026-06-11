@@ -32,6 +32,7 @@ export default function CustomersPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -47,22 +48,34 @@ export default function CustomersPage() {
 
   useEffect(() => { load(); }, []);
 
-  const openCreate = () => { setEditing(null); reset({}); setModalOpen(true); };
+  const openCreate = () => { setEditing(null); setSaveError(''); reset({}); setModalOpen(true); };
   const openEdit = (c: Customer) => {
     setEditing(c);
+    setSaveError('');
     reset({ name: c.name, email: c.email ?? '', phone: c.phone ?? '', address: c.address ?? '', company: c.company ?? '', notes: c.notes ?? '' });
     setModalOpen(true);
   };
 
   const onSubmit = async (data: FormData) => {
     setSaving(true);
+    setSaveError('');
     try {
-      if (editing) await updateCustomer(editing.id, data);
-      else await createCustomer(data);
+      const payload = {
+        name: data.name,
+        email: data.email?.trim() || undefined,
+        phone: data.phone?.trim() || undefined,
+        address: data.address?.trim() || undefined,
+        company: data.company?.trim() || undefined,
+        notes: data.notes?.trim() || undefined,
+      };
+      if (editing) await updateCustomer(editing.id, payload);
+      else await createCustomer(payload);
       setModalOpen(false);
       await load();
-    } catch { /* empty */ }
-    finally { setSaving(false); }
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+      setSaveError(Array.isArray(msg) ? msg.join(', ') : (msg ?? 'Xatolik yuz berdi'));
+    } finally { setSaving(false); }
   };
 
   const onDelete = async () => {
@@ -176,6 +189,11 @@ export default function CustomersPage() {
           <Input label="Kompaniya" placeholder="Kompaniya nomi" {...register('company')} />
           <Input label="Manzil" placeholder="To'liq manzil" {...register('address')} />
           <Textarea label="Izohlar" placeholder="Qo'shimcha ma'lumotlar..." {...register('notes')} />
+          {saveError && (
+            <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3">
+              <p className="text-sm text-red-700 dark:text-red-400">{saveError}</p>
+            </div>
+          )}
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>Bekor qilish</Button>
             <Button type="submit" loading={saving}>{editing ? "O'zgarishlarni saqlash" : 'Qo\'shish'}</Button>

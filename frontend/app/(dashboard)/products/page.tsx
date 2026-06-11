@@ -36,6 +36,7 @@ export default function ProductsPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -54,12 +55,14 @@ export default function ProductsPage() {
 
   const openCreate = () => {
     setEditing(null);
+    setSaveError('');
     reset({ unit: 'dona', stock: 0, price: 0 });
     setModalOpen(true);
   };
 
   const openEdit = (p: Product) => {
     setEditing(p);
+    setSaveError('');
     reset({
       name: p.name,
       description: p.description ?? '',
@@ -74,22 +77,25 @@ export default function ProductsPage() {
 
   const onSubmit = async (data: FormData) => {
     setSaving(true);
+    setSaveError('');
     try {
       const payload = {
         name: data.name,
-        description: data.description,
+        description: data.description?.trim() || undefined,
         price: data.price,
         stock: data.stock,
-        unit: data.unit,
-        sku: data.sku,
+        unit: data.unit?.trim() || 'dona',
+        sku: data.sku?.trim() || undefined,
         categoryId: data.categoryId ? parseInt(data.categoryId, 10) : undefined,
       };
       if (editing) await updateProduct(editing.id, payload);
       else await createProduct(payload);
       setModalOpen(false);
       await load();
-    } catch { /* empty */ }
-    finally { setSaving(false); }
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+      setSaveError(Array.isArray(msg) ? msg.join(', ') : (msg ?? 'Xatolik yuz berdi'));
+    } finally { setSaving(false); }
   };
 
   const onDelete = async () => {
@@ -177,6 +183,11 @@ export default function ProductsPage() {
             {categories.map((c) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
           </Select>
           <Textarea label="Tavsif" placeholder="Mahsulot tavsifi..." {...register('description')} />
+          {saveError && (
+            <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3">
+              <p className="text-sm text-red-700 dark:text-red-400">{saveError}</p>
+            </div>
+          )}
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>Bekor qilish</Button>
             <Button type="submit" loading={saving}>{editing ? "O'zgarishlarni saqlash" : 'Qo\'shish'}</Button>

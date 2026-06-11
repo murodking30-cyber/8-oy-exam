@@ -7,6 +7,7 @@ import { useAuthStore } from '../../store/authStore';
 const titles: Record<string, string> = {
   '/dashboard': 'Boshqaruv paneli',
   '/customers': 'Mijozlar',
+  '/users': 'Foydalanuvchilar',
   '/categories': 'Kategoriyalar',
   '/products': 'Mahsulotlar',
   '/orders': 'Buyurtmalar',

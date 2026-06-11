@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Search, Pencil, Trash2, Shield, CheckCircle, XCircle } from 'lucide-react';
 import { getUsers, createUser, updateUser, deleteUser } from '../../../lib/api/users';
 import type { User } from '../../../types';
+import { useAuthStore } from '../../../store/authStore';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
@@ -22,6 +23,9 @@ interface UserForm {
 const emptyForm: UserForm = { firstName: '', lastName: '', email: '', password: '', role: 'employee' };
 
 export default function UsersPage() {
+  const { user: currentUser } = useAuthStore();
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'manager';
+
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -39,7 +43,7 @@ export default function UsersPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { if (isAdmin) load(); else setLoading(false); }, [isAdmin]);
 
   const openCreate = () => {
     setEditing(null);
@@ -114,6 +118,16 @@ export default function UsersPage() {
 
   const set = (k: keyof UserForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  if (!isAdmin) return (
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
+        <Shield className="w-7 h-7 text-red-500" />
+      </div>
+      <p className="font-semibold text-slate-800 dark:text-white text-lg">Ruxsat yo&apos;q</p>
+      <p className="text-slate-400 text-sm mt-1">Bu sahifa faqat administrator va menejerlar uchun</p>
+    </div>
+  );
 
   return (
     <div className="space-y-4 animate-fade-in">

@@ -31,16 +31,13 @@ export class AuthService {
     const existingPhone = await this.userRepo.findOne({ where: { phone: dto.phone } });
     if (existingPhone) throw new ConflictException('Bu telefon raqam allaqachon ishlatilmoqda');
 
-    // Split full name: first word = firstName, rest = lastName
     const parts = dto.fullName.trim().split(/\s+/);
     const firstName = parts[0] ?? '';
     const lastName = parts.slice(1).join(' ') || firstName;
 
-    // First user becomes ADMIN, rest become EMPLOYEE
     const userCount = await this.userRepo.count();
     const role = userCount === 0 ? UserRole.ADMIN : UserRole.EMPLOYEE;
 
-    // Generate 6-digit code with 10-minute expiry
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -52,25 +49,55 @@ export class AuthService {
       phone: dto.phone,
       password: hashed,
       role,
-      isVerified: true,
+      isVerified: false,
+      verificationCode: code,
+      verificationCodeExpiresAt: expiresAt,
     });
-    const saved = await this.userRepo.save(user);
-    const token = this.sign(saved);
+    await this.userRepo.save(user);
+
+    await this.emailService.sendEmailCode(dto.email, code);
 
     return {
-      message: "Ro'yxatdan muvaffaqiyatli o'tdingiz!",
-      user: this.stripSensitive(saved),
-      token,
+      message: "Ro'yxatdan o'tdingiz! Emailga yuborilgan tasdiqlash kodini kiriting.",
+      contact: dto.email,
     };
+  }
+
+  async registerWithGoogle(googleUser: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    googleId: string;
+  }): Promise<{ user: Partial<User>; token: string }> {
+    let user = await this.userRepo.findOne({ where: { email: googleUser.email } });
+
+    if (!user) {
+      const userCount = await this.userRepo.count();
+      const role = userCount === 0 ? UserRole.ADMIN : UserRole.EMPLOYEE;
+      user = this.userRepo.create({
+        firstName: googleUser.firstName,
+        lastName: googleUser.lastName,
+        email: googleUser.email,
+        googleId: googleUser.googleId,
+        isVerified: true,
+        role,
+      });
+      await this.userRepo.save(user);
+    } else if (!user.googleId) {
+      user.googleId = googleUser.googleId;
+      user.isVerified = true;
+      await this.userRepo.save(user);
+    }
+
+    return { user: this.stripSensitive(user), token: this.sign(user) };
   }
 
   async verify(dto: VerifyDto) {
     const user = await this.findByEmailOrPhone(dto.emailOrPhone);
-    if (!user) throw new UnauthorizedException("Foydalanuvchi topilmadi");
+    if (!user) throw new UnauthorizedException('Foydalanuvchi topilmadi');
 
     if (user.isVerified) {
-      const safeUser = this.stripSensitive(user);
-      return { message: 'Hisob allaqachon tasdiqlangan', user: safeUser, token: this.sign(user) };
+      return { message: 'Hisob allaqachon tasdiqlangan', user: this.stripSensitive(user), token: this.sign(user) };
     }
 
     if (!user.verificationCode || user.verificationCode !== dto.code) {
@@ -78,7 +105,7 @@ export class AuthService {
     }
 
     if (!user.verificationCodeExpiresAt || user.verificationCodeExpiresAt < new Date()) {
-      throw new BadRequestException('Kod muddati tugagan');
+      throw new BadRequestException('Kod muddati tugagan. Yangi kod so\'rating.');
     }
 
     user.isVerified = true;
@@ -86,17 +113,16 @@ export class AuthService {
     user.verificationCodeExpiresAt = null;
     await this.userRepo.save(user);
 
-    const safeUser = this.stripSensitive(user);
     return {
-      message: "Ro'yxatdan o'tish muvaffaqiyatli",
-      user: safeUser,
+      message: "Hisob tasdiqlandi! Xush kelibsiz.",
+      user: this.stripSensitive(user),
       token: this.sign(user),
     };
   }
 
   async resendCode(dto: ResendCodeDto) {
     const user = await this.findByEmailOrPhone(dto.emailOrPhone);
-    if (!user) throw new UnauthorizedException("Foydalanuvchi topilmadi");
+    if (!user) throw new UnauthorizedException('Foydalanuvchi topilmadi');
     if (user.isVerified) throw new BadRequestException('Hisob allaqachon tasdiqlangan');
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -105,7 +131,6 @@ export class AuthService {
     await this.userRepo.save(user);
 
     await this.emailService.sendEmailCode(user.email, code);
-    if (user.phone) await this.emailService.sendSmsCode(user.phone, code);
 
     return { message: 'Yangi tasdiqlash kodi yuborildi' };
   }
@@ -116,30 +141,24 @@ export class AuthService {
       throw new UnauthorizedException("Elektron pochta/telefon yoki parol noto'g'ri");
     }
 
+    if (!user.isVerified) {
+      throw new UnauthorizedException('Avval tasdiqlash kodini kiriting');
+    }
+
     const valid = await bcrypt.compare(dto.password, (user as any).password);
     if (!valid) throw new UnauthorizedException("Elektron pochta/telefon yoki parol noto'g'ri");
 
-    const safeUser = this.stripSensitive(user);
-    return { message: 'Kirish muvaffaqiyatli', user: safeUser, token: this.sign(user) };
+    return { message: 'Kirish muvaffaqiyatli', user: this.stripSensitive(user), token: this.sign(user) };
   }
 
   private async findByEmailOrPhone(emailOrPhone: string, withPassword = false): Promise<User | null> {
     const select: FindOptionsSelect<User> = {
-      id: true,
-      email: true,
-      phone: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-      isActive: true,
-      isVerified: true,
-      verificationCode: true,
-      verificationCodeExpiresAt: true,
-      createdAt: true,
-      updatedAt: true,
+      id: true, email: true, phone: true, firstName: true, lastName: true,
+      role: true, isActive: true, isVerified: true,
+      verificationCode: true, verificationCodeExpiresAt: true,
+      createdAt: true, updatedAt: true,
     };
     if (withPassword) (select as Record<string, boolean>).password = true;
-
     const isEmail = emailOrPhone.includes('@');
     const where = isEmail ? { email: emailOrPhone } : { phone: emailOrPhone };
     return this.userRepo.findOne({ where, select });

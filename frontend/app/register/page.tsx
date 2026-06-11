@@ -4,12 +4,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { HardHat, Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import api from '../../lib/axios';
-import { useAuthStore } from '../../store/authStore';
-import type { AuthResponse } from '../../types';
+import type { RegisterResponse } from '../../types';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,12 +17,10 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
     setError('');
-    setSuccess('');
     if (!fullName.trim()) { setError("F.I.O kiritilishi shart"); return; }
     if (!email.trim()) { setError("Email kiritilishi shart"); return; }
     if (!phone.trim()) { setError("Telefon raqam kiritilishi shart"); return; }
@@ -33,15 +29,15 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await api.post<AuthResponse>('/auth/register', {
+      const res = await api.post<RegisterResponse>('/auth/register', {
         fullName: fullName.trim(),
         email: email.trim(),
         phone: phone.trim(),
         password,
       });
-      setAuth(res.data.user, res.data.token);
-      setSuccess("Ro'yxatdan o'tish muvaffaqiyatli!");
-      setTimeout(() => router.replace('/dashboard'), 800);
+      // Backend sends verification code to email/console — redirect to verify page
+      const contact = encodeURIComponent(res.data.contact ?? email.trim());
+      router.replace(`/verify?contact=${contact}`);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg ?? "Ro'yxatdan o'tishda xatolik yuz berdi.");
@@ -55,21 +51,20 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Decorative left panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-slate-900 flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-violet-600/10" />
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
             <HardHat className="w-5 h-5 text-white" />
           </div>
-          <span className="text-white font-semibold text-lg">Qurilish CRM</span>
+          <span className="text-white font-semibold text-lg">Qurilish Ombori</span>
         </div>
         <div className="relative z-10">
           <p className="text-2xl font-light text-white leading-relaxed">
             Jamoangizga qo&apos;shiling va qurilish materiallarini yanada aqlli boshqaring.
           </p>
           <div className="mt-6 space-y-3">
-            {["Inventarizatsiyani real vaqtda kuzating", "Mijozlar bilan munosabatlarni boshqaring", "Batafsil hisobotlar yarating"].map((f) => (
+            {["Inventarizatsiyani real vaqtda kuzating", "Kirim va chiqimni aniq hisoblang", "Foyda va zararni tahlil qiling"].map((f) => (
               <div key={f} className="flex items-center gap-2 text-slate-400">
                 <span className="w-5 h-5 rounded-full bg-indigo-600/20 border border-indigo-600/30 flex items-center justify-center text-indigo-400 text-xs">✓</span>
                 <span className="text-sm">{f}</span>
@@ -77,17 +72,16 @@ export default function RegisterPage() {
             ))}
           </div>
         </div>
-        <p className="relative z-10 text-slate-600 text-sm">v1.0.0 · NestJS + Next.js</p>
+        <p className="relative z-10 text-slate-600 text-sm">v2.0.0 · NestJS + Next.js</p>
       </div>
 
-      {/* Form panel */}
       <div className="flex-1 flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950">
         <div className="w-full max-w-md">
           <div className="flex items-center gap-2 mb-8 lg:hidden">
             <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
               <HardHat className="w-4 h-4 text-white" />
             </div>
-            <span className="font-semibold text-slate-900 dark:text-white">Qurilish CRM</span>
+            <span className="font-semibold text-slate-900 dark:text-white">Qurilish Ombori</span>
           </div>
 
           <div className="mb-8">
@@ -98,7 +92,6 @@ export default function RegisterPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
             <div className="space-y-4">
 
-              {/* F.I.O */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">F.I.O</label>
                 <div className="relative">
@@ -110,7 +103,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Email */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
                 <div className="relative">
@@ -122,7 +114,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Telefon raqam */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Telefon raqam</label>
                 <div className="relative">
@@ -134,7 +125,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Parol */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Parol</label>
                 <div className="relative">
@@ -150,7 +140,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Parolni tasdiqlash */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Parolni tasdiqlash</label>
                 <div className="relative">
@@ -169,11 +158,6 @@ export default function RegisterPage() {
               {error && (
                 <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3">
                   <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
-                </div>
-              )}
-              {success && (
-                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-4 py-3">
-                  <p className="text-sm text-emerald-700 dark:text-emerald-400">{success}</p>
                 </div>
               )}
 

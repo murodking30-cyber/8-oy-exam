@@ -3,12 +3,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  Users,
   UserCog,
   Tag,
   Package,
-  ShoppingCart,
-  CreditCard,
+  Warehouse,
+  ArrowDownCircle,
+  ArrowUpCircle,
   BarChart2,
   HardHat,
   X,
@@ -20,14 +20,19 @@ const navGroups = [
     items: [{ href: '/dashboard', label: 'Boshqaruv paneli', icon: LayoutDashboard }],
   },
   {
-    label: 'Operatsiyalar',
+    label: 'Inventar',
     items: [
-      { href: '/customers', label: 'Mijozlar', icon: Users },
-      { href: '/users', label: 'Foydalanuvchilar', icon: UserCog },
-      { href: '/categories', label: 'Kategoriyalar', icon: Tag },
       { href: '/products', label: 'Mahsulotlar', icon: Package },
-      { href: '/orders', label: 'Buyurtmalar', icon: ShoppingCart },
-      { href: '/payments', label: "To'lovlar", icon: CreditCard },
+      { href: '/ombor', label: 'Ombor', icon: Warehouse },
+      { href: '/kirim', label: 'Kirim', icon: ArrowDownCircle },
+      { href: '/sotuv', label: 'Sotuv / Chiqim', icon: ArrowUpCircle },
+    ],
+  },
+  {
+    label: 'Sozlamalar',
+    items: [
+      { href: '/categories', label: 'Kategoriyalar', icon: Tag },
+      { href: '/users', label: 'Foydalanuvchilar', icon: UserCog },
     ],
   },
   {
@@ -51,7 +56,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
           <HardHat className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white leading-tight">Qurilish CRM</p>
+          <p className="text-sm font-semibold text-white leading-tight">Qurilish Ombori</p>
           <p className="text-[10px] text-slate-500">Materiallar boshqaruvi</p>
         </div>
         <button
@@ -96,9 +101,9 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
       <div className="px-5 py-4 border-t border-slate-800 flex-shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <p className="text-[11px] text-slate-500">API: localhost:3000</p>
+          <p className="text-[11px] text-slate-500">Qurilish Ombori</p>
         </div>
-        <p className="text-[10px] text-slate-700 mt-1">v1.0.0 · Qurilish CRM</p>
+        <p className="text-[10px] text-slate-700 mt-1">v2.0.0 · Inventar tizimi</p>
       </div>
     </div>
   );

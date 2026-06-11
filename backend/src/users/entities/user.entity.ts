@@ -10,7 +10,7 @@ export enum UserRole {
   ADMIN = 'admin',
   MANAGER = 'manager',
   EMPLOYEE = 'employee',
-  STAFF = 'staff', // legacy value kept for DB backward compatibility
+  STAFF = 'staff',
 }
 
 @Entity('users')
@@ -30,8 +30,11 @@ export class User {
   @Column({ type: 'varchar', unique: true, nullable: true })
   phone: string | null;
 
-  @Column({ select: false })
+  @Column({ select: false, nullable: true })
   password: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  googleId: string | null;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.EMPLOYEE })
   role: UserRole;

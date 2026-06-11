@@ -3,37 +3,54 @@ import {
   IsInt,
   IsNumber,
   IsOptional,
-  IsPositive,
   IsString,
   Min,
 } from 'class-validator';
 
 export class CreateProductDto {
-  @ApiProperty({ example: 'Portland Cement 50kg' })
+  @ApiProperty({ example: 'Sement M400' })
   @IsString()
   name: string;
 
-  @ApiPropertyOptional({ example: 'High quality Portland cement bag' })
+  @ApiPropertyOptional({ example: 'Yuqori sifatli Portland tsementi' })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiProperty({ example: 12.5 })
-  @IsNumber()
-  @IsPositive()
-  price: number;
+  @ApiPropertyOptional({ example: 'https://example.com/image.jpg' })
+  @IsOptional()
+  @IsString()
+  image?: string;
 
-  @ApiProperty({ example: 500 })
+  @ApiPropertyOptional({ example: 45000 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  purchasePrice?: number;
+
+  @ApiProperty({ example: 55000 })
+  @IsNumber()
+  @Min(0)
+  salePrice: number;
+
+  @ApiPropertyOptional({ example: 100 })
+  @IsOptional()
   @IsInt()
   @Min(0)
-  stock: number;
+  stock?: number;
 
-  @ApiPropertyOptional({ example: 'bag', default: 'pcs' })
+  @ApiPropertyOptional({ example: 10 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  lowStockLimit?: number;
+
+  @ApiPropertyOptional({ example: 'qop', default: 'dona' })
   @IsOptional()
   @IsString()
   unit?: string;
 
-  @ApiPropertyOptional({ example: 'CEM-001' })
+  @ApiPropertyOptional({ example: 'SEM-M400' })
   @IsOptional()
   @IsString()
   sku?: string;

@@ -10,42 +10,29 @@ import { ReportsService } from './reports.service';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
-  @Get('sales-summary')
-  @ApiOperation({ summary: 'Overall sales summary' })
-  getSalesSummary() {
-    return this.reportsService.getSalesSummary();
+  @Get('inventory-stats')
+  @ApiOperation({ summary: 'Inventar statistikasi (bugun, oy, yil, grafiklar)' })
+  getInventoryStats() {
+    return this.reportsService.getInventoryStats();
   }
 
   @Get('top-products')
-  @ApiOperation({ summary: 'Top selling products' })
+  @ApiOperation({ summary: 'Eng ko\'p sotilgan mahsulotlar' })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   getTopProducts(@Query('limit') limit?: string) {
     return this.reportsService.getTopProducts(limit ? +limit : 10);
   }
 
-  @Get('top-customers')
-  @ApiOperation({ summary: 'Top customers by spending' })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  getTopCustomers(@Query('limit') limit?: string) {
-    return this.reportsService.getTopCustomers(limit ? +limit : 10);
-  }
-
   @Get('low-stock')
-  @ApiOperation({ summary: 'Products with low stock' })
+  @ApiOperation({ summary: 'Kam qolgan mahsulotlar' })
   @ApiQuery({ name: 'threshold', required: false, type: Number })
   getLowStockProducts(@Query('threshold') threshold?: string) {
-    return this.reportsService.getLowStockProducts(threshold ? +threshold : 10);
+    return this.reportsService.getLowStockProducts(threshold ? +threshold : undefined);
   }
 
   @Get('revenue-by-month')
-  @ApiOperation({ summary: 'Monthly revenue breakdown' })
+  @ApiOperation({ summary: 'Oylik daromad' })
   getRevenueByMonth() {
     return this.reportsService.getRevenueByMonth();
-  }
-
-  @Get('orders-by-status')
-  @ApiOperation({ summary: 'Order counts grouped by status' })
-  getOrdersByStatus() {
-    return this.reportsService.getOrdersByStatus();
   }
 }

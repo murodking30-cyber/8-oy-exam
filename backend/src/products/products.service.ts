@@ -13,7 +13,16 @@ export class ProductsService {
   ) {}
 
   create(dto: CreateProductDto): Promise<Product> {
-    const product = this.repo.create(dto);
+    const product = this.repo.create({
+      ...dto,
+      price: dto.salePrice ?? 0,
+      salePrice: dto.salePrice ?? 0,
+      purchasePrice: dto.purchasePrice ?? 0,
+      stock: dto.stock ?? 0,
+      lowStockLimit: dto.lowStockLimit ?? 10,
+      unit: dto.unit ?? 'dona',
+      sku: dto.sku?.trim() || undefined,
+    });
     return this.repo.save(product);
   }
 
@@ -29,24 +38,36 @@ export class ProductsService {
       where: { id },
       relations: { category: true },
     });
-    if (!product) throw new NotFoundException(`Product #${id} not found`);
+    if (!product) throw new NotFoundException(`Mahsulot #${id} topilmadi`);
     return product;
   }
 
   async update(id: number, dto: UpdateProductDto): Promise<Product> {
     const product = await this.findOne(id);
-    Object.assign(product, dto);
+    const patch: Partial<Product> = { ...dto } as any;
+    if (dto.salePrice !== undefined) patch.price = dto.salePrice;
+    if (dto.sku !== undefined) (patch as any).sku = dto.sku?.trim() || null;
+    Object.assign(product, patch);
     return this.repo.save(product);
   }
 
   async remove(id: number): Promise<void> {
-    const product = await this.findOne(id);
-    await this.repo.remove(product);
+    await this.repo.delete(id);
   }
 
   async adjustStock(id: number, quantity: number): Promise<Product> {
     const product = await this.findOne(id);
-    product.stock += quantity;
+    product.stock = Math.max(0, product.stock + quantity);
     return this.repo.save(product);
+  }
+
+  getLowStock(limit = 10): Promise<Product[]> {
+    return this.repo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.category', 'category')
+      .where('p.stock <= p.lowStockLimit')
+      .orderBy('p.stock', 'ASC')
+      .take(limit)
+      .getMany();
   }
 }

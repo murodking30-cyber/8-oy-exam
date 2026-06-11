@@ -22,16 +22,28 @@ export class Product {
   @Column({ nullable: true, type: 'text' })
   description: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ nullable: true, type: 'varchar' })
+  image: string;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   price: number;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  purchasePrice: number;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  salePrice: number;
 
   @Column({ type: 'int', default: 0 })
   stock: number;
 
-  @Column({ default: 'pcs' })
+  @Column({ type: 'int', default: 10 })
+  lowStockLimit: number;
+
+  @Column({ default: 'dona' })
   unit: string;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ nullable: true, unique: true, type: 'varchar' })
   sku: string;
 
   @ManyToOne(() => Category, (category) => category.products, {

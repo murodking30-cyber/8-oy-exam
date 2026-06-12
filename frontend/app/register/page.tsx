@@ -185,9 +185,10 @@ export default function RegisterPage() {
                 />
                 <button
                   type="button"
-                  onMouseDown={(e) => { e.preventDefault(); setShowPw((v) => !v); }}
-                  className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  onClick={() => setShowPw((v) => !v)}
+                  className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   tabIndex={-1}
+                  aria-label={showPw ? 'Parolni yashirish' : "Parolni ko'rsatish"}
                 >
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -211,9 +212,10 @@ export default function RegisterPage() {
                 />
                 <button
                   type="button"
-                  onMouseDown={(e) => { e.preventDefault(); setShowConfirm((v) => !v); }}
-                  className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   tabIndex={-1}
+                  aria-label={showConfirm ? 'Parolni yashirish' : "Parolni ko'rsatish"}
                 >
                   {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>

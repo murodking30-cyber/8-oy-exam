@@ -1,10 +1,12 @@
 'use client';
 import { Suspense, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { HardHat, ShieldCheck } from 'lucide-react';
+import { HardHat, ShieldCheck, Terminal } from 'lucide-react';
 import { verifyCode, resendCode } from '../../lib/api/auth';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/ui/Button';
+
+const isDev = process.env.NODE_ENV === 'development';
 
 function VerifyContent() {
   const params = useSearchParams();
@@ -60,8 +62,22 @@ function VerifyContent() {
           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
             <HardHat className="w-5 h-5 text-white" />
           </div>
-          <span className="font-semibold text-slate-900 dark:text-white text-lg">Qurilish CRM</span>
+          <span className="font-semibold text-slate-900 dark:text-white text-lg">Qurilish Ombori</span>
         </div>
+
+        {/* Dev mode hint */}
+        {isDev && (
+          <div className="mb-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 flex items-start gap-3">
+            <Terminal className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Development rejim</p>
+              <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
+                Tasdiqlash kodi backend terminalga chiqarildi.<br />
+                <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">📧 [DEV] Tasdiqlash kodi: XXXXXX</code>
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
           <div className="flex justify-center mb-6">
@@ -90,6 +106,7 @@ function VerifyContent() {
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="000000"
+                autoFocus
                 className="w-full text-center text-2xl font-bold tracking-[0.5em] px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>

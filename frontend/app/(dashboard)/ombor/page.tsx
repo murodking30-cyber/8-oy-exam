@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Search, AlertTriangle, Image as ImageIcon } from 'lucide-react';
+import { Search, AlertTriangle, Image as ImageIcon, Package, Warehouse, TrendingDown, XCircle } from 'lucide-react';
 import { getProducts } from '../../../lib/api/products';
 import type { Product } from '../../../types';
 import LoadingSpinner from '../../../components/ui/LoadingSpinner';
@@ -38,44 +38,54 @@ export default function OmborPage() {
   const stockLevel = (p: Product) => {
     if (p.stock === 0) return { label: 'Tugagan', cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' };
     if (p.stock <= (p.lowStockLimit ?? 10)) return { label: 'Kam', cls: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' };
-    return { label: 'Yetarli', cls: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' };
+    return { label: 'Yetarli', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' };
   };
+
+  const stats = [
+    { label: 'Jami mahsulotlar', value: products.length, sub: 'ta tur', icon: Package, grad: 'from-indigo-500 to-indigo-600' },
+    { label: 'Ombor qiymati', value: `${fmt(totalValue)} so'm`, sub: 'kirim narxida', icon: Warehouse, grad: 'from-blue-500 to-blue-600' },
+    { label: 'Kam zaxira', value: lowCount, sub: 'ta mahsulot', icon: TrendingDown, grad: 'from-orange-500 to-orange-600' },
+    { label: 'Tugagan', value: emptyCount, sub: 'ta mahsulot', icon: XCircle, grad: 'from-red-500 to-red-600' },
+  ];
 
   return (
     <div className="space-y-5">
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-          <p className="text-xs text-slate-500 mb-1">Jami mahsulotlar</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">{products.length}</p>
-        </div>
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-          <p className="text-xs text-slate-500 mb-1">Ombor qiymati</p>
-          <p className="text-2xl font-bold text-indigo-600">{fmt(totalValue)}</p>
-          <p className="text-[10px] text-slate-400">so&apos;m (kirim narxida)</p>
-        </div>
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-          <p className="text-xs text-slate-500 mb-1">Kam zaxira</p>
-          <p className="text-2xl font-bold text-orange-600">{lowCount}</p>
-          <p className="text-[10px] text-slate-400">ta mahsulot</p>
-        </div>
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-          <p className="text-xs text-slate-500 mb-1">Tugagan</p>
-          <p className="text-2xl font-bold text-red-600">{emptyCount}</p>
-          <p className="text-[10px] text-slate-400">ta mahsulot</p>
-        </div>
+        {stats.map(({ label, value, sub, icon: Icon, grad }) => (
+          <div key={label} className={`bg-gradient-to-br ${grad} rounded-xl p-5 shadow-md text-white`}>
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs font-semibold uppercase tracking-wider opacity-80">{label}</p>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/20">
+                <Icon className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold tracking-tight">{value}</p>
+            <p className="text-xs mt-1 opacity-70">{sub}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Mahsulot qidirish..." className="pl-9 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 w-64 transition-all" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Mahsulot qidirish..."
+            className="pl-9 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 w-64 transition-all"
+          />
         </div>
         <div className="flex gap-2">
           {(['all', 'low', 'empty'] as const).map((f) => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${filter === f ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-indigo-400'}`}>
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                filter === f
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-indigo-400 hover:text-indigo-600'
+              }`}
+            >
               {f === 'all' ? 'Barchasi' : f === 'low' ? 'Kam zaxira' : 'Tugagan'}
             </button>
           ))}
@@ -95,9 +105,9 @@ export default function OmborPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                 {filtered.length === 0 && (
-                  <tr><td colSpan={7} className="text-center py-12 text-gray-500">Mahsulotlar topilmadi</td></tr>
+                  <tr><td colSpan={7} className="text-center py-12 text-slate-400 text-sm">Mahsulotlar topilmadi</td></tr>
                 )}
                 {filtered.map((p) => {
                   const level = stockLevel(p);
@@ -119,20 +129,20 @@ export default function OmborPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.unit}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400 font-medium">{p.unit}</td>
                       <td className="px-4 py-3 font-bold tabular-nums">
-                        <span className={p.stock === 0 ? 'text-red-600' : p.stock <= (p.lowStockLimit ?? 10) ? 'text-orange-600' : 'text-green-600'}>
+                        <span className={p.stock === 0 ? 'text-red-600' : p.stock <= (p.lowStockLimit ?? 10) ? 'text-orange-600' : 'text-emerald-600'}>
                           {p.stock}
                         </span>
                         {p.stock <= (p.lowStockLimit ?? 10) && p.stock > 0 && (
                           <AlertTriangle className="w-3.5 h-3.5 text-orange-500 inline ml-1" />
                         )}
                       </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400 tabular-nums">{fmt(p.purchasePrice)}</td>
-                      <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white tabular-nums">{fmt(p.salePrice)}</td>
-                      <td className="px-4 py-3 text-indigo-600 dark:text-indigo-400 font-semibold tabular-nums">{fmt(value)}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400 tabular-nums">{fmt(p.purchasePrice)} so&apos;m</td>
+                      <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white tabular-nums">{fmt(p.salePrice)} so&apos;m</td>
+                      <td className="px-4 py-3 text-indigo-600 dark:text-indigo-400 font-semibold tabular-nums">{fmt(value)} so&apos;m</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-[11px] font-semibold ${level.cls}`}>{level.label}</span>
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${level.cls}`}>{level.label}</span>
                       </td>
                     </tr>
                   );
@@ -140,7 +150,9 @@ export default function OmborPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500">{filtered.length} / {products.length} ta mahsulot</div>
+          <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500">
+            {filtered.length} / {products.length} ta mahsulot ko&apos;rsatilmoqda
+          </div>
         </div>
       )}
     </div>

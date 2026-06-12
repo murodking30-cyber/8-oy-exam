@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { TrendingUp, AlertTriangle, DollarSign, Package, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { TrendingUp, AlertTriangle, Sparkles, Package, ArrowDownCircle, ArrowUpCircle, Warehouse } from 'lucide-react';
 import { getInventoryStats } from '../../../lib/api/reports';
 import type { InventoryStats } from '../../../types';
 import LoadingSpinner from '../../../components/ui/LoadingSpinner';
@@ -43,24 +43,26 @@ export default function ReportsPage() {
 
   const y = stats?.thisYear;
 
+  const summaryCards = [
+    { label: 'Yillik sotuv', value: `${fmt(y?.sales ?? 0)} so'm`, icon: ArrowUpCircle, grad: 'from-emerald-500 to-emerald-600' },
+    { label: 'Yillik kirim', value: `${fmt(y?.purchases ?? 0)} so'm`, icon: ArrowDownCircle, grad: 'from-indigo-500 to-indigo-600' },
+    { label: 'Yillik foyda', value: `${fmt(y?.profit ?? 0)} so'm`, icon: Sparkles, grad: 'from-violet-500 to-violet-600' },
+    { label: 'Sotilgan birlik', value: fmt(y?.soldQuantity ?? 0), icon: Package, grad: 'from-blue-500 to-blue-600' },
+    { label: 'Jami mahsulot', value: stats?.totalProducts ?? 0, icon: Package, grad: 'from-slate-600 to-slate-700' },
+    { label: 'Ombor qiymati', value: `${fmt(stats?.totalStockValue ?? 0)} so'm`, icon: Warehouse, grad: 'from-amber-500 to-amber-600' },
+  ];
+
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5">
       {/* Year summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        {[
-          { label: 'Yillik sotuv', value: `${fmt(y?.sales ?? 0)} so'm`, icon: ArrowUpCircle, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-          { label: 'Yillik kirim', value: `${fmt(y?.purchases ?? 0)} so'm`, icon: ArrowDownCircle, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-          { label: 'Yillik foyda', value: `${fmt(y?.profit ?? 0)} so'm`, icon: DollarSign, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
-          { label: 'Sotilgan birlik', value: fmt(y?.soldQuantity ?? 0), icon: Package, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-          { label: "Jami mahsulot", value: stats?.totalProducts ?? 0, icon: Package, color: 'text-slate-700', bg: 'bg-slate-100 dark:bg-slate-700/40' },
-          { label: 'Ombor qiymati', value: `${fmt(stats?.totalStockValue ?? 0)} so'm`, icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-        ].map(({ label, value, icon: Icon, color, bg }) => (
-          <div key={label} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${bg}`}>
-              <Icon className={`w-4 h-4 ${color}`} />
+        {summaryCards.map(({ label, value, icon: Icon, grad }) => (
+          <div key={label} className={`bg-gradient-to-br ${grad} rounded-xl p-4 shadow-md text-white`}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3 bg-white/20">
+              <Icon className="w-4 h-4 text-white" />
             </div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
-            <p className={`text-base font-bold mt-1 ${color} leading-tight`}>{value}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide opacity-80">{label}</p>
+            <p className="text-base font-bold mt-1 leading-tight">{value}</p>
           </div>
         ))}
       </div>
@@ -68,20 +70,20 @@ export default function ReportsPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         <Card>
-          <CardHeader icon={TrendingUp} title="Kunlik savdo (so'nggi 30 kun)" />
+          <CardHeader icon={TrendingUp} title="Kunlik savdo (so'nggi 30 kun)" iconClass="text-indigo-500" />
           <div className="p-5">
             {(stats?.charts.daily?.length ?? 0) > 0
               ? <SalesChart data={stats!.charts.daily} type="daily" />
-              : <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">Hali ma&apos;lumot yo&apos;q</div>
+              : <div className="h-[220px] flex flex-col items-center justify-center gap-2 text-slate-400"><TrendingUp className="w-8 h-8 opacity-30" /><span className="text-sm">Hali ma&apos;lumot yo&apos;q</span></div>
             }
           </div>
         </Card>
         <Card>
-          <CardHeader icon={TrendingUp} title="Oylik savdo" />
+          <CardHeader icon={TrendingUp} title="Oylik savdo" iconClass="text-emerald-500" />
           <div className="p-5">
             {(stats?.charts.monthly?.length ?? 0) > 0
               ? <SalesChart data={stats!.charts.monthly} type="monthly" />
-              : <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">Hali ma&apos;lumot yo&apos;q</div>
+              : <div className="h-[220px] flex flex-col items-center justify-center gap-2 text-slate-400"><TrendingUp className="w-8 h-8 opacity-30" /><span className="text-sm">Hali ma&apos;lumot yo&apos;q</span></div>
             }
           </div>
         </Card>
@@ -103,7 +105,7 @@ export default function ReportsPage() {
                   ? <tr><td colSpan={4} className="text-center py-8 text-slate-400 text-sm">Ma&apos;lumot yo&apos;q</td></tr>
                   : stats!.topProducts.map((p, i) => (
                     <tr key={p.productId} className="hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
-                      <td className="px-4 py-3 text-slate-400 text-xs font-mono">{i + 1}</td>
+                      <td className="px-4 py-3 text-xs">{i < 3 ? ['🥇','🥈','🥉'][i] : <span className="text-slate-400 font-mono">{i + 1}</span>}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{p.productName}</td>
                       <td className="px-4 py-3 text-right text-slate-500 tabular-nums">{fmt(p.totalQuantity)}</td>
                       <td className="px-4 py-3 text-right font-semibold text-emerald-600 tabular-nums">{fmt(p.totalAmount)} so&apos;m</td>
@@ -143,7 +145,7 @@ export default function ReportsPage() {
         </Card>
 
         <Card className="xl:col-span-2">
-          <CardHeader icon={DollarSign} title="Oylik hisobot jadvali" />
+          <CardHeader icon={Sparkles} title="Oylik hisobot jadvali" iconClass="text-violet-500" />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr className="bg-slate-50 dark:bg-slate-700/30">

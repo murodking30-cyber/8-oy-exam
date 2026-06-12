@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Image as ImageIcon, Package } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -15,7 +15,7 @@ import Modal from '../../../components/ui/Modal';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import LoadingSpinner from '../../../components/ui/LoadingSpinner';
 
-const UNITS = ['dona', 'qop', 'kg', 'tonna', 'm', 'm²', 'm³', 'litr'];
+const UNITS = ['tonna', 'kg', 'qop'];
 
 const schema = z.object({
   name: z.string().min(1, 'Nomi kiritilishi shart'),
@@ -63,7 +63,7 @@ export default function ProductsPage() {
   const openCreate = () => {
     setEditing(null);
     setSaveError('');
-    reset({ unit: 'dona', purchasePrice: 0, salePrice: 0, lowStockLimit: 10 });
+    reset({ unit: 'tonna', purchasePrice: 0, salePrice: 0, lowStockLimit: 10 });
     setModalOpen(true);
   };
 
@@ -76,7 +76,7 @@ export default function ProductsPage() {
       image: p.image ?? '',
       purchasePrice: Number(p.purchasePrice) || 0,
       salePrice: Number(p.salePrice) || Number(p.price) || 0,
-      unit: p.unit || 'dona',
+      unit: p.unit || 'tonna',
       sku: p.sku ?? '',
       lowStockLimit: p.lowStockLimit ?? 10,
       categoryId: p.categoryId ? String(p.categoryId) : '',
@@ -126,11 +126,16 @@ export default function ProductsPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Mahsulot qidirish..." className="pl-9 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 w-64 transition-all" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Mahsulot qidirish..."
+            className="pl-9 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 w-64 transition-all"
+          />
         </div>
         <Button onClick={openCreate}><Plus className="w-4 h-4" />Mahsulot qo&apos;shish</Button>
       </div>
@@ -148,9 +153,16 @@ export default function ProductsPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                 {filtered.length === 0 && (
-                  <tr><td colSpan={7} className="text-center py-12 text-gray-500">Mahsulotlar topilmadi</td></tr>
+                  <tr>
+                    <td colSpan={7} className="text-center py-16">
+                      <div className="flex flex-col items-center gap-3 text-slate-400">
+                        <Package className="w-10 h-10 opacity-30" />
+                        <p className="text-sm">Mahsulotlar topilmadi</p>
+                      </div>
+                    </td>
+                  </tr>
                 )}
                 {filtered.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
@@ -164,21 +176,33 @@ export default function ProductsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-gray-900 dark:text-white">{p.name}</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{p.name}</p>
                       {p.sku && <p className="text-xs text-slate-400 font-mono mt-0.5">{p.sku}</p>}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{p.category?.name ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400 tabular-nums">{fmt(p.purchasePrice)} so&apos;m</td>
-                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white tabular-nums">{fmt(p.salePrice)} so&apos;m</td>
                     <td className="px-4 py-3">
-                      <span className={`font-semibold tabular-nums ${p.stock === 0 ? 'text-red-600' : p.stock <= (p.lowStockLimit ?? 10) ? 'text-orange-600' : 'text-green-600'}`}>
+                      {p.category?.name ? (
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium">{p.category.name}</span>
+                      ) : (
+                        <span className="text-slate-400 text-xs">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 tabular-nums">{fmt(p.purchasePrice)} so&apos;m</td>
+                    <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white tabular-nums">{fmt(p.salePrice)} so&apos;m</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        p.stock === 0
+                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                          : p.stock <= (p.lowStockLimit ?? 10)
+                          ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                          : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                      }`}>
                         {p.stock} {p.unit}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 transition-colors"><Pencil className="w-4 h-4" /></button>
-                        <button onClick={() => setDeleteId(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      <div className="flex gap-1">
+                        <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-700 transition-colors"><Pencil className="w-4 h-4" /></button>
+                        <button onClick={() => setDeleteId(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -186,7 +210,9 @@ export default function ProductsPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500">{filtered.length} / {products.length} ta mahsulot</div>
+          <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500">
+            {filtered.length} / {products.length} ta mahsulot
+          </div>
         </div>
       )}
 
@@ -226,7 +252,14 @@ export default function ProductsPage() {
         </form>
       </Modal>
 
-      <ConfirmDialog open={deleteId !== null} onClose={() => setDeleteId(null)} onConfirm={onDelete} loading={deleting} title="Mahsulotni o'chirish" message="Haqiqatan ham bu mahsulotni o'chirmoqchimisiz?" />
+      <ConfirmDialog
+        open={deleteId !== null}
+        onClose={() => setDeleteId(null)}
+        onConfirm={onDelete}
+        loading={deleting}
+        title="Mahsulotni o'chirish"
+        message="Haqiqatan ham bu mahsulotni o'chirmoqchimisiz?"
+      />
     </div>
   );
 }

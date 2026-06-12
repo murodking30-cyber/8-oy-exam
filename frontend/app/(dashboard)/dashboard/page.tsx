@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import {
-  Package, TrendingUp, TrendingDown, DollarSign,
+  Package, TrendingUp, TrendingDown, Sparkles,
   AlertTriangle, ArrowDownCircle, ArrowUpCircle, Warehouse,
 } from 'lucide-react';
 import StatCard from '../../../components/dashboard/StatCard';
@@ -38,25 +38,31 @@ export default function DashboardPage() {
   const t = stats?.today;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Today stats */}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">Bugun</p>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">Bugun</span>
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+        </div>
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard title="Bugungi sotuv" value={`${fmt(t?.sales ?? 0)} so'm`} icon={ArrowUpCircle} color="green" sub="Chiqim summasi" />
-          <StatCard title="Bugungi kirim" value={`${fmt(t?.purchases ?? 0)} so'm`} icon={ArrowDownCircle} color="indigo" sub="Kirim summasi" />
-          <StatCard title="Bugungi foyda" value={`${fmt(t?.profit ?? 0)} so'm`} icon={DollarSign} color="purple" sub="Sotuv − kirim" />
-          <StatCard title="Sotilgan miqdor" value={`${fmt(t?.soldQuantity ?? 0)} birlik`} icon={Package} color="blue" sub="Bugungi chiqim" />
+          <StatCard gradient title="Bugungi sotuv" value={`${fmt(t?.sales ?? 0)} so'm`} icon={ArrowUpCircle} color="green" sub="Chiqim summasi" />
+          <StatCard gradient title="Bugungi kirim" value={`${fmt(t?.purchases ?? 0)} so'm`} icon={ArrowDownCircle} color="indigo" sub="Kirim summasi" />
+          <StatCard gradient title="Bugungi foyda" value={`${fmt(t?.profit ?? 0)} so'm`} icon={Sparkles} color="purple" sub="Sotuv − kirim" />
+          <StatCard gradient title="Sotilgan miqdor" value={`${fmt(t?.soldQuantity ?? 0)} birlik`} icon={Package} color="blue" sub="Bugungi chiqim" />
         </div>
       </div>
 
       {/* Month stats */}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">Bu oy</p>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">Bu oy</span>
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+        </div>
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           <StatCard title="Oylik sotuv" value={`${fmt(m?.sales ?? 0)} so'm`} icon={TrendingUp} color="green" sub="Jami sotuv" />
           <StatCard title="Oylik kirim" value={`${fmt(m?.purchases ?? 0)} so'm`} icon={TrendingDown} color="indigo" sub="Jami kirim" />
-          <StatCard title="Oylik foyda" value={`${fmt(m?.profit ?? 0)} so'm`} icon={DollarSign} color="purple" sub="Sof foyda" />
+          <StatCard title="Oylik foyda" value={`${fmt(m?.profit ?? 0)} so'm`} icon={Sparkles} color="purple" sub="Sof foyda" />
           <StatCard title="Jami mahsulotlar" value={stats?.totalProducts ?? 0} icon={Warehouse} color="blue" sub={`Ombor: ${fmt(stats?.totalStockValue ?? 0)} so'm`} />
         </div>
       </div>
@@ -71,8 +77,9 @@ export default function DashboardPage() {
           {(stats?.charts.daily?.length ?? 0) > 0 ? (
             <SalesChart data={stats!.charts.daily} type="daily" />
           ) : (
-            <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">
-              Hali ma&apos;lumotlar yo&apos;q
+            <div className="h-[220px] flex flex-col items-center justify-center gap-2 text-slate-400">
+              <TrendingUp className="w-8 h-8 opacity-30" />
+              <span className="text-sm">Hali ma&apos;lumotlar yo&apos;q</span>
             </div>
           )}
         </div>
@@ -85,8 +92,9 @@ export default function DashboardPage() {
           {(stats?.charts.monthly?.length ?? 0) > 0 ? (
             <SalesChart data={stats!.charts.monthly} type="monthly" />
           ) : (
-            <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">
-              Hali ma&apos;lumotlar yo&apos;q
+            <div className="h-[220px] flex flex-col items-center justify-center gap-2 text-slate-400">
+              <TrendingUp className="w-8 h-8 opacity-30" />
+              <span className="text-sm">Hali ma&apos;lumotlar yo&apos;q</span>
             </div>
           )}
         </div>
@@ -95,7 +103,8 @@ export default function DashboardPage() {
       {/* Top products + Low stock */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-indigo-500" />
             <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Eng ko&apos;p sotilgan mahsulotlar</h2>
           </div>
           <div className="overflow-x-auto">
@@ -114,7 +123,11 @@ export default function DashboardPage() {
                 ) : (
                   stats!.topProducts.map((p, i) => (
                     <tr key={p.productId} className="hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
-                      <td className="px-5 py-3.5 text-slate-400 text-xs font-mono">{i + 1}</td>
+                      <td className="px-5 py-3.5">
+                        <span className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-600' : i === 2 ? 'bg-orange-100 text-orange-700' : 'text-slate-400'}`}>
+                          {i < 3 ? ['🥇','🥈','🥉'][i] : i + 1}
+                        </span>
+                      </td>
                       <td className="px-5 py-3.5 text-slate-900 dark:text-white font-medium">{p.productName}</td>
                       <td className="px-5 py-3.5 text-right text-slate-600 dark:text-slate-400 tabular-nums">{fmt(p.totalQuantity)}</td>
                       <td className="px-5 py-3.5 text-right font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
@@ -135,17 +148,23 @@ export default function DashboardPage() {
           </div>
           <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
             {(stats?.lowStock?.length ?? 0) === 0 ? (
-              <p className="text-sm text-slate-400 p-5 text-center">Barcha mahsulotlar yetarli</p>
+              <div className="flex flex-col items-center justify-center py-8 gap-2 text-slate-400">
+                <Package className="w-8 h-8 opacity-30" />
+                <p className="text-sm">Barcha mahsulotlar yetarli</p>
+              </div>
             ) : (
               stats!.lowStock.map((p) => (
                 <div key={p.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                   <div>
-                    <p className="text-sm text-slate-900 dark:text-white">{p.name}</p>
-                    <p className="text-xs text-slate-400">Chegara: {p.lowStockLimit} {p.unit}</p>
+                    <p className="text-sm text-slate-900 dark:text-white font-medium">{p.name}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Chegara: {p.lowStockLimit} {p.unit}</p>
                   </div>
-                  <span className={`text-sm font-bold tabular-nums ${p.stock === 0 ? 'text-red-600' : 'text-orange-500'}`}>
-                    {p.stock} {p.unit}
-                  </span>
+                  <div className="text-right">
+                    <span className={`text-sm font-bold tabular-nums ${p.stock === 0 ? 'text-red-600' : 'text-orange-500'}`}>
+                      {p.stock} {p.unit}
+                    </span>
+                    {p.stock === 0 && <p className="text-[10px] text-red-400">Tugagan</p>}
+                  </div>
                 </div>
               ))
             )}

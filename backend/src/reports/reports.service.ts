@@ -68,7 +68,7 @@ export class ReportsService {
       .createQueryBuilder('so')
       .select('so.date', 'date')
       .addSelect('COALESCE(SUM(so.totalAmount),0)', 'sales')
-      .where(`so.date >= (CURRENT_DATE - INTERVAL '30 days')::text`)
+      .where(`so.date >= CURRENT_DATE - INTERVAL '30 days'`)
       .groupBy('so.date')
       .orderBy('so.date', 'ASC')
       .getRawMany();
@@ -77,7 +77,7 @@ export class ReportsService {
       .createQueryBuilder('si')
       .select('si.date', 'date')
       .addSelect('COALESCE(SUM(si.totalCost),0)', 'purchases')
-      .where(`si.date >= (CURRENT_DATE - INTERVAL '30 days')::text`)
+      .where(`si.date >= CURRENT_DATE - INTERVAL '30 days'`)
       .groupBy('si.date')
       .orderBy('si.date', 'ASC')
       .getRawMany();
@@ -94,7 +94,7 @@ export class ReportsService {
       .createQueryBuilder('so')
       .select("TO_CHAR(so.date::date, 'YYYY-MM')", 'month')
       .addSelect('COALESCE(SUM(so.totalAmount),0)', 'sales')
-      .where(`so.date >= (CURRENT_DATE - INTERVAL '12 months')::text`)
+      .where(`so.date >= CURRENT_DATE - INTERVAL '12 months'`)
       .groupBy("TO_CHAR(so.date::date, 'YYYY-MM')")
       .orderBy('month', 'ASC')
       .getRawMany();
@@ -103,7 +103,7 @@ export class ReportsService {
       .createQueryBuilder('si')
       .select("TO_CHAR(si.date::date, 'YYYY-MM')", 'month')
       .addSelect('COALESCE(SUM(si.totalCost),0)', 'purchases')
-      .where(`si.date >= (CURRENT_DATE - INTERVAL '12 months')::text`)
+      .where(`si.date >= CURRENT_DATE - INTERVAL '12 months'`)
       .groupBy("TO_CHAR(si.date::date, 'YYYY-MM')")
       .orderBy('month', 'ASC')
       .getRawMany();

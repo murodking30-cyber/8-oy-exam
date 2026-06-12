@@ -57,7 +57,7 @@ export class ProductsService {
 
   async adjustStock(id: number, quantity: number): Promise<Product> {
     const product = await this.findOne(id);
-    product.stock = Math.max(0, product.stock + quantity);
+    product.stock = Math.max(0, Number(product.stock) + quantity);
     return this.repo.save(product);
   }
 

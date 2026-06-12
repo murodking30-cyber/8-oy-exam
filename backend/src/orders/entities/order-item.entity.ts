@@ -22,12 +22,13 @@ export class OrderItem {
 
   @ManyToOne(() => Product, (product) => product.orderItems, {
     eager: true,
-    onDelete: 'RESTRICT',
+    nullable: true,
+    onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'productId' })
   product: Product;
 
-  @Column()
+  @Column({ nullable: true })
   productId: number;
 
   @Column({ type: 'int' })

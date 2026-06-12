@@ -15,9 +15,9 @@ export class StockOutService {
 
   async create(dto: CreateStockOutDto): Promise<StockOut> {
     const product = await this.productsService.findOne(dto.productId);
-    if (product.stock < dto.quantity) {
+    if (Number(product.stock) < Number(dto.quantity)) {
       throw new BadRequestException(
-        `Yetarli mahsulot yo'q. Mavjud: ${product.stock} ${product.unit}, So'ralgan: ${dto.quantity}`,
+        `Yetarli mahsulot yo'q. Mavjud: ${Number(product.stock)} ${product.unit}, So'ralgan: ${dto.quantity}`,
       );
     }
     const salePrice = dto.salePrice ?? Number(product.salePrice) ?? Number(product.price) ?? 0;

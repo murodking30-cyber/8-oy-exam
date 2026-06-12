@@ -22,7 +22,7 @@ export class Product {
   @Column({ nullable: true, type: 'text' })
   description: string;
 
-  @Column({ nullable: true, type: 'varchar' })
+  @Column({ nullable: true, type: 'text' })
   image: string;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
@@ -34,7 +34,7 @@ export class Product {
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   salePrice: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'decimal', precision: 12, scale: 3, default: 0 })
   stock: number;
 
   @Column({ type: 'int', default: 10 })

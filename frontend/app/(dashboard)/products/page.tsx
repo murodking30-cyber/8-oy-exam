@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, Image as ImageIcon, Package } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Plus, Search, Pencil, Trash2, Image as ImageIcon, Package, Upload, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,18 +20,38 @@ const UNITS = ['tonna', 'kg', 'qop'];
 const schema = z.object({
   name: z.string().min(1, 'Nomi kiritilishi shart'),
   description: z.string().optional(),
-  image: z.string().optional(),
-  purchasePrice: z.number().min(0, 'Narx manfiy bo\'lishi mumkin emas'),
-  salePrice: z.number().positive('Sotuv narxi musbat bo\'lishi kerak'),
+  purchasePrice: z.number().min(0, "Narx manfiy bo'lishi mumkin emas"),
+  salePrice: z.number().positive("Sotuv narxi musbat bo'lishi kerak"),
   unit: z.string().min(1, 'Birlik tanlanishi shart'),
-  sku: z.string().optional(),
   lowStockLimit: z.number().int().min(0),
   categoryId: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
 
 const fmt = (n: number | string) =>
-  Number(n).toLocaleString('uz-UZ', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  Number(n).toLocaleString('uz-UZ', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
+
+function resizeImageToBase64(file: File, maxPx = 480, quality = 0.75): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width: w, height: h } = img;
+        if (w > maxPx || h > maxPx) {
+          if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target!.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -44,6 +64,8 @@ export default function ProductsPage() {
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -63,6 +85,7 @@ export default function ProductsPage() {
   const openCreate = () => {
     setEditing(null);
     setSaveError('');
+    setImagePreview(null);
     reset({ unit: 'tonna', purchasePrice: 0, salePrice: 0, lowStockLimit: 10 });
     setModalOpen(true);
   };
@@ -70,18 +93,28 @@ export default function ProductsPage() {
   const openEdit = (p: Product) => {
     setEditing(p);
     setSaveError('');
+    setImagePreview(p.image ?? null);
     reset({
       name: p.name,
       description: p.description ?? '',
-      image: p.image ?? '',
       purchasePrice: Number(p.purchasePrice) || 0,
       salePrice: Number(p.salePrice) || Number(p.price) || 0,
       unit: p.unit || 'tonna',
-      sku: p.sku ?? '',
       lowStockLimit: p.lowStockLimit ?? 10,
       categoryId: p.categoryId ? String(p.categoryId) : '',
     });
     setModalOpen(true);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveError("Rasm hajmi 5MB dan oshmasligi kerak");
+      return;
+    }
+    const base64 = await resizeImageToBase64(file);
+    setImagePreview(base64);
   };
 
   const onSubmit = async (data: FormData) => {
@@ -91,11 +124,10 @@ export default function ProductsPage() {
       const payload = {
         name: data.name,
         description: data.description?.trim() || undefined,
-        image: data.image?.trim() || undefined,
+        image: imagePreview ?? undefined,
         purchasePrice: data.purchasePrice,
         salePrice: data.salePrice,
         unit: data.unit,
-        sku: data.sku?.trim() || undefined,
         lowStockLimit: data.lowStockLimit,
         categoryId: data.categoryId ? parseInt(data.categoryId, 10) : undefined,
       };
@@ -116,13 +148,15 @@ export default function ProductsPage() {
       await deleteProduct(deleteId);
       setDeleteId(null);
       await load();
-    } catch { /* empty */ }
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+      alert(Array.isArray(msg) ? msg.join(', ') : (msg ?? "O'chirishda xatolik yuz berdi"));
+    }
     finally { setDeleting(false); }
   };
 
   const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.sku?.toLowerCase().includes(search.toLowerCase())
+    p.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -177,7 +211,6 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-semibold text-slate-900 dark:text-white">{p.name}</p>
-                      {p.sku && <p className="text-xs text-slate-400 font-mono mt-0.5">{p.sku}</p>}
                     </td>
                     <td className="px-4 py-3">
                       {p.category?.name ? (
@@ -190,13 +223,13 @@ export default function ProductsPage() {
                     <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white tabular-nums">{fmt(p.salePrice)} so&apos;m</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        p.stock === 0
+                        Number(p.stock) === 0
                           ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          : p.stock <= (p.lowStockLimit ?? 10)
+                          : Number(p.stock) <= (p.lowStockLimit ?? 10)
                           ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
                           : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                       }`}>
-                        {p.stock} {p.unit}
+                        {fmt(p.stock)} {p.unit}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -216,13 +249,59 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Mahsulotni tahrirlash' : 'Mahsulot qo\'shish'}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Mahsulotni tahrirlash' : "Mahsulot qo'shish"}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+          {/* Image upload */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Rasm</label>
+            <div className="flex items-start gap-3">
+              {/* Preview */}
+              <div className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center overflow-hidden flex-shrink-0 bg-slate-50 dark:bg-slate-700/30">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
+                ) : (
+                  <ImageIcon className="w-6 h-6 text-slate-400" />
+                )}
+              </div>
+              <div className="flex-1 space-y-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <Upload className="w-4 h-4" />
+                  Fayl tanlash
+                </button>
+                {imagePreview && (
+                  <button
+                    type="button"
+                    onClick={() => { setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                    className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Rasmni olib tashlash
+                  </button>
+                )}
+                <p className="text-[11px] text-slate-400">JPEG, PNG, WEBP — max 5MB</p>
+              </div>
+            </div>
+          </div>
+
           <Input label="Nomi *" placeholder="Mahsulot nomi" error={errors.name?.message} {...register('name')} />
+
           <div className="grid grid-cols-2 gap-4">
             <Input label="Kirim narxi (so'm)" type="number" step="1" placeholder="0" error={errors.purchasePrice?.message} {...register('purchasePrice', { valueAsNumber: true })} />
             <Input label="Sotuv narxi (so'm) *" type="number" step="1" placeholder="0" error={errors.salePrice?.message} {...register('salePrice', { valueAsNumber: true })} />
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">O&apos;lchov birligi *</label>
@@ -231,15 +310,16 @@ export default function ProductsPage() {
               </select>
               {errors.unit && <p className="text-xs text-red-500">{errors.unit.message}</p>}
             </div>
-            <Input label="Kam zaxira chegarasi" type="number" placeholder="10" {...register('lowStockLimit', { valueAsNumber: true })} />
+            <Input label="Kam zaxira ogohlantirish" type="number" placeholder="10" {...register('lowStockLimit', { valueAsNumber: true })} />
           </div>
-          <Input label="Katalog raqami (SKU)" placeholder="SKU-001" {...register('sku')} />
-          <Input label="Rasm URL (ixtiyoriy)" placeholder="https://example.com/image.jpg" {...register('image')} />
+
           <Select label="Kategoriya" {...register('categoryId')}>
             <option value="">Kategoriyasiz</option>
             {categories.map((c) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
           </Select>
+
           <Textarea label="Tavsif" placeholder="Mahsulot tavsifi..." {...register('description')} />
+
           {saveError && (
             <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3">
               <p className="text-sm text-red-700 dark:text-red-400">{saveError}</p>
@@ -247,7 +327,7 @@ export default function ProductsPage() {
           )}
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>Bekor qilish</Button>
-            <Button type="submit" loading={saving}>{editing ? "O'zgarishlarni saqlash" : 'Qo\'shish'}</Button>
+            <Button type="submit" loading={saving}>{editing ? "O'zgarishlarni saqlash" : "Qo'shish"}</Button>
           </div>
         </form>
       </Modal>
@@ -258,7 +338,7 @@ export default function ProductsPage() {
         onConfirm={onDelete}
         loading={deleting}
         title="Mahsulotni o'chirish"
-        message="Haqiqatan ham bu mahsulotni o'chirmoqchimisiz?"
+        message="Haqiqatan ham bu mahsulotni o'chirmoqchimisiz? Bu mahsulotning barcha kirim/chiqim yozuvlari ham o'chiriladi."
       />
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 import { Suspense, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { HardHat, ShieldCheck, Terminal } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, Terminal } from 'lucide-react';
 import { verifyCode, resendCode } from '../../lib/api/auth';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/ui/Button';
@@ -60,9 +60,9 @@ function VerifyContent() {
       <div className="w-full max-w-md">
         <div className="flex items-center gap-2 mb-8 justify-center">
           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
-            <HardHat className="w-5 h-5 text-white" />
+            <ShoppingBag className="w-5 h-5 text-white" />
           </div>
-          <span className="font-semibold text-slate-900 dark:text-white text-lg">Qurilish Ombori</span>
+          <span className="font-semibold text-slate-900 dark:text-white text-lg">Papash Market</span>
         </div>
 
         {/* Dev mode hint */}

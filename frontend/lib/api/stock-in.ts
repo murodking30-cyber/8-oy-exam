@@ -13,6 +13,7 @@ export const createStockIn = (data: {
   unit?: string;
   purchasePrice?: number;
   date: string;
+  supplierId?: number;
   note?: string;
 }) => api.post<StockIn>('/stock-in', data).then((r) => r.data);
 

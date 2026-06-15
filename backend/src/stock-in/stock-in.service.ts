@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductsService } from '../products/products.service';
@@ -26,21 +26,22 @@ export class StockInService {
       totalCost,
       date: dto.date,
       note: dto.note,
+      supplierId: dto.supplierId ?? null,
     });
     const saved = await this.repo.save(record);
     await this.productsService.adjustStock(dto.productId, Number(dto.quantity));
-    return this.repo.findOne({ where: { id: saved.id }, relations: { product: true } }) as Promise<StockIn>;
+    return this.repo.findOne({ where: { id: saved.id }, relations: { product: true, supplier: true } }) as Promise<StockIn>;
   }
 
   findAll(): Promise<StockIn[]> {
     return this.repo.find({
-      relations: { product: true },
+      relations: { product: true, supplier: true },
       order: { date: 'DESC', createdAt: 'DESC' },
     });
   }
 
   async findOne(id: number): Promise<StockIn> {
-    const r = await this.repo.findOne({ where: { id }, relations: { product: true } });
+    const r = await this.repo.findOne({ where: { id }, relations: { product: true, supplier: true } });
     if (!r) throw new NotFoundException(`Kirim #${id} topilmadi`);
     return r;
   }

@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
+import { Supplier } from '../../suppliers/entities/supplier.entity';
 
 @Entity('stock_in')
 export class StockIn {
@@ -20,6 +21,13 @@ export class StockIn {
 
   @Column()
   productId: number;
+
+  @ManyToOne(() => Supplier, (s) => s.stockIns, { nullable: true, onDelete: 'SET NULL', eager: false })
+  @JoinColumn({ name: 'supplierId' })
+  supplier: Supplier | null;
+
+  @Column({ nullable: true })
+  supplierId: number | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 3 })
   quantity: number;

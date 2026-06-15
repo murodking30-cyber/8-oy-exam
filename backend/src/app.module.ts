@@ -4,14 +4,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
-import { CustomersModule } from './customers/customers.module';
 import { DatabaseModule } from './database/database.module';
-import { OrdersModule } from './orders/orders.module';
-import { PaymentsModule } from './payments/payments.module';
+import { DebtorsModule } from './debtors/debtors.module';
+import { ExpensesModule } from './expenses/expenses.module';
 import { ProductsModule } from './products/products.module';
 import { ReportsModule } from './reports/reports.module';
 import { StockInModule } from './stock-in/stock-in.module';
+import { UploadModule } from './upload/upload.module';
 import { StockOutModule } from './stock-out/stock-out.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -20,14 +21,15 @@ import { UsersModule } from './users/users.module';
     DatabaseModule,
     AuthModule,
     UsersModule,
-    CustomersModule,
     CategoriesModule,
     ProductsModule,
     StockInModule,
     StockOutModule,
-    OrdersModule,
-    PaymentsModule,
+    SuppliersModule,
+    DebtorsModule,
+    ExpensesModule,
     ReportsModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

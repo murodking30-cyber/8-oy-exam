@@ -10,7 +10,9 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   BarChart2,
-  HardHat,
+  ShoppingBag,
+  Users,
+  Receipt,
   X,
 } from 'lucide-react';
 
@@ -20,12 +22,20 @@ const navGroups = [
     items: [{ href: '/dashboard', label: 'Boshqaruv paneli', icon: LayoutDashboard }],
   },
   {
-    label: 'Inventar',
+    label: 'Ombor',
     items: [
       { href: '/products', label: 'Mahsulotlar', icon: Package },
-      { href: '/ombor', label: 'Ombor', icon: Warehouse },
+      { href: '/ombor', label: 'Ombor holati', icon: Warehouse },
       { href: '/kirim', label: 'Kirim', icon: ArrowDownCircle },
-      { href: '/sotuv', label: 'Sotuv / Chiqim', icon: ArrowUpCircle },
+      { href: '/sotuv', label: 'Sotuv', icon: ArrowUpCircle },
+    ],
+  },
+  {
+    label: 'Moliya',
+    items: [
+      { href: '/qarzdorlar', label: 'Qarzdorlar', icon: Users },
+      { href: '/taminotchilar', label: "Ta'minotchilar", icon: ShoppingBag },
+      { href: '/xarajatlar', label: 'Xarajatlar', icon: Receipt },
     ],
   },
   {
@@ -53,11 +63,11 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
     <div className="flex flex-col h-full bg-slate-900">
       <div className="flex items-center gap-3 px-5 h-14 border-b border-slate-800 flex-shrink-0">
         <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
-          <HardHat className="w-4 h-4 text-white" />
+          <ShoppingBag className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white leading-tight">Qurilish Ombori</p>
-          <p className="text-[10px] text-slate-500">Materiallar boshqaruvi</p>
+          <p className="text-sm font-semibold text-white leading-tight">Papash Market</p>
+          <p className="text-[10px] text-slate-500">Ombor va Savdo Tizimi</p>
         </div>
         <button
           onClick={onClose}
@@ -101,9 +111,9 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
       <div className="px-5 py-4 border-t border-slate-800 flex-shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <p className="text-[11px] text-slate-500">Qurilish Ombori</p>
+          <p className="text-[11px] text-slate-500">Papash Market</p>
         </div>
-        <p className="text-[10px] text-slate-700 mt-1">v2.0.0 · Inventar tizimi</p>
+        <p className="text-[10px] text-slate-700 mt-1">v3.0.0 · Ombor va Savdo</p>
       </div>
     </div>
   );

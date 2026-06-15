@@ -36,7 +36,7 @@ export class AuthService {
     const lastName = parts.slice(1).join(' ') || firstName;
 
     const userCount = await this.userRepo.count();
-    const role = userCount === 0 ? UserRole.ADMIN : UserRole.EMPLOYEE;
+    const role = userCount === 0 ? UserRole.ADMIN : UserRole.OMBORCHI;
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
@@ -73,7 +73,7 @@ export class AuthService {
 
     if (!user) {
       const userCount = await this.userRepo.count();
-      const role = userCount === 0 ? UserRole.ADMIN : UserRole.EMPLOYEE;
+      const role = userCount === 0 ? UserRole.ADMIN : UserRole.OMBORCHI;
       user = this.userRepo.create({
         firstName: googleUser.firstName,
         lastName: googleUser.lastName,

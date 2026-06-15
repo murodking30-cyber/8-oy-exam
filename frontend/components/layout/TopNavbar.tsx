@@ -5,16 +5,16 @@ import { useThemeStore } from '../../store/themeStore';
 import { useAuthStore } from '../../store/authStore';
 
 const titles: Record<string, string> = {
-  '/dashboard': 'Boshqaruv paneli',
-  '/customers': 'Mijozlar',
+  '/dashboard': 'Papash Market - Boshqaruv paneli',
   '/users': 'Foydalanuvchilar',
   '/categories': 'Kategoriyalar',
   '/products': 'Mahsulotlar',
-  '/ombor': 'Ombor',
+  '/ombor': 'Ombor holati',
   '/kirim': 'Kirim',
   '/sotuv': 'Sotuv',
-  '/orders': 'Buyurtmalar',
-  '/payments': "To'lovlar",
+  '/qarzdorlar': 'Qarzdorlar',
+  '/taminotchilar': "Ta'minotchilar",
+  '/xarajatlar': 'Xarajatlar',
   '/reports': 'Hisobotlar',
 };
 

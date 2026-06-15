@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Expense } from '../expenses/entities/expense.entity';
 import { Product } from '../products/entities/product.entity';
 import { StockIn } from '../stock-in/entities/stock-in.entity';
 import { StockOut } from '../stock-out/entities/stock-out.entity';
@@ -14,6 +15,8 @@ export class ReportsService {
     private readonly stockInRepo: Repository<StockIn>,
     @InjectRepository(StockOut)
     private readonly stockOutRepo: Repository<StockOut>,
+    @InjectRepository(Expense)
+    private readonly expenseRepo: Repository<Expense>,
   ) {}
 
   private today() {
@@ -25,6 +28,16 @@ export class ReportsService {
   }
   private yearStart() {
     return `${new Date().getFullYear()}-01-01`;
+  }
+
+  private async getExpenseSum(from: string, to: string): Promise<number> {
+    const r = await this.expenseRepo
+      .createQueryBuilder('e')
+      .select('COALESCE(SUM(e.amount),0)', 'total')
+      .where('e.date >= :from', { from })
+      .andWhere('e.date <= :to', { to })
+      .getRawOne<{ total: string }>();
+    return Number(r?.total ?? 0);
   }
 
   private async getSalesSummary(from: string, to: string) {
@@ -45,10 +58,12 @@ export class ReportsService {
 
     const totalAmount = Number(sales?.totalAmount ?? 0);
     const totalCost = Number(purchases?.totalCost ?? 0);
+    const expenses = await this.getExpenseSum(from, to);
     return {
       sales: totalAmount,
       purchases: totalCost,
-      profit: totalAmount - totalCost,
+      expenses,
+      profit: totalAmount - totalCost - expenses,
       soldQuantity: Number(sales?.totalQuantity ?? 0),
     };
   }

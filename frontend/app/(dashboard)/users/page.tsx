@@ -20,11 +20,11 @@ interface UserForm {
   role: string;
 }
 
-const emptyForm: UserForm = { firstName: '', lastName: '', email: '', password: '', role: 'employee' };
+const emptyForm: UserForm = { firstName: '', lastName: '', email: '', password: '', role: 'omborchi' };
 
 export default function UsersPage() {
   const { user: currentUser } = useAuthStore();
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'manager';
+  const isAdmin = currentUser?.role === 'admin';
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,7 +125,7 @@ export default function UsersPage() {
         <Shield className="w-7 h-7 text-red-500" />
       </div>
       <p className="font-semibold text-slate-800 dark:text-white text-lg">Ruxsat yo&apos;q</p>
-      <p className="text-slate-400 text-sm mt-1">Bu sahifa faqat administrator va menejerlar uchun</p>
+      <p className="text-slate-400 text-sm mt-1">Bu sahifa faqat administrator uchun</p>
     </div>
   );
 
@@ -238,8 +238,8 @@ export default function UsersPage() {
             onChange={set('password')}
           />
           <Select label="Lavozim" value={form.role} onChange={set('role')}>
-            <option value="employee">Xodim</option>
-            <option value="manager">Menejer</option>
+            <option value="omborchi">Omborchi</option>
+            <option value="kassir">Kassir</option>
             <option value="admin">Administrator</option>
           </Select>
 

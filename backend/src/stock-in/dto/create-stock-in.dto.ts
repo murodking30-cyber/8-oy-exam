@@ -26,6 +26,11 @@ export class CreateStockInDto {
   @IsDateString()
   date: string;
 
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @IsInt()
+  supplierId?: number;
+
   @ApiPropertyOptional({ example: 'Ombor kirim' })
   @IsOptional()
   @IsString()

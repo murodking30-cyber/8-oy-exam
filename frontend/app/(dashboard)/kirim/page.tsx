@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { Plus, Trash2, ArrowDownCircle, Receipt, CalendarDays } from 'lucide-react';
 import { getStockIns, createStockIn, deleteStockIn } from '../../../lib/api/stock-in';
 import { getProducts } from '../../../lib/api/products';
-import type { StockIn, Product } from '../../../types';
+import { getSuppliers } from '../../../lib/api/suppliers';
+import type { StockIn, Product, Supplier } from '../../../types';
 import Button from '../../../components/ui/Button';
 import Modal from '../../../components/ui/Modal';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
@@ -19,6 +20,7 @@ const inputCls = 'rounded-lg border border-slate-300 dark:border-slate-600 bg-wh
 export default function KirimPage() {
   const [records, setRecords] = useState<StockIn[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -30,13 +32,15 @@ export default function KirimPage() {
   const [quantity, setQuantity] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [date, setDate] = useState(today());
+  const [supplierId, setSupplierId] = useState('');
   const [note, setNote] = useState('');
 
   const load = async () => {
     try {
-      const [r, p] = await Promise.all([getStockIns(), getProducts()]);
+      const [r, p, s] = await Promise.all([getStockIns(), getProducts(), getSuppliers()]);
       setRecords(r);
       setProducts(p);
+      setSuppliers(s);
     } catch { /* empty */ }
     finally { setLoading(false); }
   };
@@ -49,6 +53,7 @@ export default function KirimPage() {
     setQuantity('');
     setPurchasePrice('');
     setDate(today());
+    setSupplierId('');
     setNote('');
     setModalOpen(true);
   };
@@ -70,6 +75,7 @@ export default function KirimPage() {
         unit: selectedProduct?.unit,
         purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
         date,
+        supplierId: supplierId ? parseInt(supplierId) : undefined,
         note: note.trim() || undefined,
       });
       setModalOpen(false);
@@ -142,7 +148,7 @@ export default function KirimPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-700/30 border-b border-slate-200 dark:border-slate-700">
-                  {['Sana', 'Mahsulot', 'Miqdor', 'Kirim narxi', 'Jami', 'Izoh', ''].map((h) => (
+                  {["Sana", "Mahsulot", "Ta'minotchi", 'Miqdor', 'Kirim narxi', 'Jami', 'Izoh', ''].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -157,6 +163,7 @@ export default function KirimPage() {
                       <span className="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-xs font-mono">{r.date}</span>
                     </td>
                     <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{r.product?.name ?? `#${r.productId}`}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs">{r.supplier?.name ?? <span className="text-slate-300 dark:text-slate-600">—</span>}</td>
                     <td className="px-4 py-3 tabular-nums text-slate-700 dark:text-slate-300">
                       <span className="font-semibold">{fmt(r.quantity)}</span> <span className="text-slate-400 text-xs">{r.unit}</span>
                     </td>
@@ -219,6 +226,15 @@ export default function KirimPage() {
               </p>
             </div>
           )}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Ta'minotchi</label>
+            <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className={inputCls}>
+              <option value="">Ta'minotchi tanlang (ixtiyoriy)</option>
+              {suppliers.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}{s.phone ? ` — ${s.phone}` : ''}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Sana *</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />

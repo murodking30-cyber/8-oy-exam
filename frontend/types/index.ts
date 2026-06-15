@@ -4,7 +4,7 @@ export interface User {
   lastName: string;
   email: string;
   phone?: string;
-  role: 'admin' | 'manager' | 'employee' | 'staff';
+  role: 'admin' | 'kassir' | 'omborchi';
   isActive: boolean;
   isVerified: boolean;
   createdAt: string;
@@ -22,14 +22,39 @@ export interface RegisterResponse {
   contact: string;
 }
 
-export interface Customer {
+export interface Supplier {
   id: number;
   name: string;
-  email?: string;
   phone?: string;
   address?: string;
-  company?: string;
-  notes?: string;
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Debtor {
+  id: number;
+  name: string;
+  phone?: string | null;
+  product?: string | null;
+  quantity?: number | null;
+  totalAmount: number;
+  paidAmount: number;
+  debtDate?: string | null;
+  lastPaymentDate?: string | null;
+  note?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ExpenseCategory = 'elektr' | 'transport' | 'ish_haqi' | 'internet' | 'boshqa';
+
+export interface Expense {
+  id: number;
+  category: ExpenseCategory;
+  amount: number;
+  date: string;
+  note?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,6 +90,8 @@ export interface StockIn {
   id: number;
   productId: number;
   product?: Product;
+  supplierId?: number;
+  supplier?: Supplier;
   quantity: number;
   unit: string;
   purchasePrice: number;
@@ -93,6 +120,7 @@ export interface StockOut {
 export interface PeriodStats {
   sales: number;
   purchases: number;
+  expenses: number;
   profit: number;
   soldQuantity: number;
 }
@@ -138,63 +166,4 @@ export interface InventoryStats {
   lowStock: LowStockItem[];
   totalProducts: number;
   totalStockValue: number;
-}
-
-export interface OrderItem {
-  id: number;
-  orderId: number;
-  productId: number;
-  product?: Product;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-}
-
-export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'processing'
-  | 'shipped'
-  | 'delivered'
-  | 'cancelled';
-
-export interface Order {
-  id: number;
-  orderNumber: string;
-  customer?: Customer;
-  customerId: number;
-  items: OrderItem[];
-  status: OrderStatus;
-  subtotal: number;
-  tax: number;
-  total: number;
-  notes?: string;
-  payments?: Payment[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'check';
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
-
-export interface Payment {
-  id: number;
-  orderId: number;
-  order?: Order;
-  amount: number;
-  method: PaymentMethod;
-  status: PaymentStatus;
-  transactionId?: string;
-  notes?: string;
-  paidAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface SalesSummary {
-  totalRevenue: number;
-  totalOrders: number;
-  pendingOrders: number;
-  completedOrders: number;
-  cancelledOrders: number;
 }

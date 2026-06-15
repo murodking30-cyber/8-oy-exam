@@ -8,9 +8,8 @@ import {
 
 export enum UserRole {
   ADMIN = 'admin',
-  MANAGER = 'manager',
-  EMPLOYEE = 'employee',
-  STAFF = 'staff',
+  KASSIR = 'kassir',
+  OMBORCHI = 'omborchi',
 }
 
 @Entity('users')
@@ -36,7 +35,7 @@ export class User {
   @Column({ type: 'varchar', nullable: true })
   googleId: string | null;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.EMPLOYEE })
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.OMBORCHI })
   role: UserRole;
 
   @Column({ default: true })

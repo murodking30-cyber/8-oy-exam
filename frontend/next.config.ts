@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['192.168.1.7', '192.168.1.3', '192.168.1.9', '192.168.1.21'],
+  allowedDevOrigins: ['192.168.1.7', '192.168.1.3', '192.168.1.9', '192.168.1.21', '192.168.1.14'],
   async rewrites() {
     if (process.env.NODE_ENV === 'production') return [];
     return [

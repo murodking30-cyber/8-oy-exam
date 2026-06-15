@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { HardHat, Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import api from '../../lib/axios';
 import type { RegisterResponse } from '../../types';
 
@@ -56,13 +56,13 @@ export default function RegisterPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-violet-600/10" />
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
-            <HardHat className="w-5 h-5 text-white" />
+            <ShoppingBag className="w-5 h-5 text-white" />
           </div>
-          <span className="text-white font-semibold text-lg">Qurilish Ombori</span>
+          <span className="text-white font-semibold text-lg">Papash Market</span>
         </div>
         <div className="relative z-10">
           <p className="text-2xl font-light text-white leading-relaxed">
-            Jamoangizga qo&apos;shiling va qurilish materiallarini yanada aqlli boshqaring.
+            Papash Market jamoasiga qo&apos;shiling — savdo va omborni yanada aqlli boshqaring.
           </p>
           <div className="mt-6 space-y-3">
             {['Inventarizatsiyani real vaqtda kuzating', 'Kirim va chiqimni aniq hisoblang', 'Foyda va zararni tahlil qiling'].map((f) => (
@@ -82,9 +82,9 @@ export default function RegisterPage() {
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-6 lg:hidden">
             <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
-              <HardHat className="w-4 h-4 text-white" />
+              <ShoppingBag className="w-4 h-4 text-white" />
             </div>
-            <span className="font-semibold text-slate-900 dark:text-white">Qurilish Ombori</span>
+            <span className="font-semibold text-slate-900 dark:text-white">Papash Market</span>
           </div>
 
           <div className="mb-6">
@@ -185,6 +185,7 @@ export default function RegisterPage() {
                 />
                 <button
                   type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setShowPw((v) => !v)}
                   className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   tabIndex={-1}
@@ -212,6 +213,7 @@ export default function RegisterPage() {
                 />
                 <button
                   type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setShowConfirm((v) => !v)}
                   className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   tabIndex={-1}

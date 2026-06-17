@@ -9,9 +9,9 @@ import {
 import api, { BASE_URL } from '@/lib/api';
 import type { Product } from '@/lib/types';
 
-function fmt(n: number) { return n.toLocaleString('uz-UZ'); }
+function fmt(n: unknown) { return Number(n ?? 0).toLocaleString('uz-UZ'); }
 
-const UNITS = ['kg', 'tonna', 'qop'];
+const UNITS = ['kg', 'tonna', 'qop', 'dona'];
 const IMAGE_BASE = BASE_URL.replace('/api', '');
 
 interface Form {
@@ -69,8 +69,10 @@ export default function MahsulotlarScreen() {
   const filtered = products.filter((p) => {
     const q = search.toLowerCase();
     const matchSearch = p.name.toLowerCase().includes(q) || (p.category?.name ?? '').toLowerCase().includes(q);
-    if (filter === 'low') return matchSearch && Number(p.stock) <= p.lowStockLimit && Number(p.stock) > 0;
-    if (filter === 'out') return matchSearch && Number(p.stock) === 0;
+    const stock = Number(p.stock ?? 0);
+    const limit = Number(p.lowStockLimit ?? 5);
+    if (filter === 'low') return matchSearch && stock <= limit && stock > 0;
+    if (filter === 'out') return matchSearch && stock === 0;
     return matchSearch;
   });
 
@@ -84,12 +86,12 @@ export default function MahsulotlarScreen() {
   const openEdit = (p: Product) => {
     setEditTarget(p);
     setForm({
-      name: p.name,
-      salePrice: String(p.salePrice),
-      purchasePrice: String(p.purchasePrice ?? ''),
-      unit: p.unit,
-      stock: String(p.stock),
-      lowStockLimit: String(p.lowStockLimit),
+      name: p.name ?? '',
+      salePrice: String(Number(p.salePrice ?? 0)),
+      purchasePrice: String(Number(p.purchasePrice ?? 0)),
+      unit: p.unit ?? 'kg',
+      stock: String(Number(p.stock ?? 0)),
+      lowStockLimit: String(Number(p.lowStockLimit ?? 5)),
       image: p.image ?? '',
     });
     setFormError('');
@@ -132,21 +134,26 @@ export default function MahsulotlarScreen() {
   };
 
   const handleDelete = (p: Product) => {
-    Alert.alert("O'chirish", `"${p.name}" mahsulotini o'chirasizmi?`, [
-      { text: 'Bekor', style: 'cancel' },
-      {
-        text: "O'chirish", style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.delete(`/products/${p.id}`);
-            setProducts((prev) => prev.filter((x) => x.id !== p.id));
-          } catch (e: unknown) {
-            const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-            Alert.alert('Xatolik', msg ?? "O'chirishda xatolik");
-          }
+    Alert.alert(
+      "O'chirish",
+      `"${p.name}" mahsulotini o'chirasizmi?\n\nBu mahsulot bilan bog'liq barcha kirim va sotuv ham o'chadi.`,
+      [
+        { text: 'Bekor', style: 'cancel' },
+        {
+          text: "O'chirish", style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/products/${p.id}`);
+              setProducts((prev) => prev.filter((x) => x.id !== p.id));
+            } catch (e: unknown) {
+              const raw = (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+              const msg = Array.isArray(raw) ? raw[0] : raw;
+              Alert.alert('Xatolik', msg ?? "O'chirishda xatolik. Server bilan bog'liq muammo bo'lishi mumkin.");
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleSave = async () => {
@@ -159,7 +166,7 @@ export default function MahsulotlarScreen() {
       const body = {
         name: form.name.trim(),
         salePrice: Number(form.salePrice),
-        purchasePrice: form.purchasePrice ? Number(form.purchasePrice) : undefined,
+        purchasePrice: form.purchasePrice ? Number(form.purchasePrice) : 0,
         unit: form.unit,
         stock: form.stock ? Number(form.stock) : 0,
         lowStockLimit: form.lowStockLimit ? Number(form.lowStockLimit) : 5,
@@ -185,53 +192,55 @@ export default function MahsulotlarScreen() {
   const f = (key: keyof Form) => (val: string) => setForm((prev) => ({ ...prev, [key]: val }));
 
   const renderItem = ({ item: p }: { item: Product }) => {
-    const stock = Number(p.stock);
+    const stock = Number(p.stock ?? 0);
+    const limit = Number(p.lowStockLimit ?? 5);
     const isOut = stock === 0;
-    const isLow = stock > 0 && stock <= p.lowStockLimit;
+    const isLow = stock > 0 && stock <= limit;
     const badgeColor = isOut ? '#FEE2E2' : isLow ? '#FEF3C7' : '#DCFCE7';
     const badgeText = isOut ? '#DC2626' : isLow ? '#92400E' : '#166534';
     const imageUrl = p.image ? (p.image.startsWith('http') ? p.image : `${IMAGE_BASE}${p.image}`) : null;
 
     return (
-      <TouchableOpacity
-        style={[styles.item, { backgroundColor: c.card, borderColor: c.border }]}
-        onPress={() => openEdit(p)}
-        activeOpacity={0.75}
-      >
-        {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={styles.productImage} />
-        ) : (
-          <View style={[styles.iconBox, { backgroundColor: '#4F46E520' }]}>
-            <Ionicons name="cube-outline" size={20} color="#4F46E5" />
-          </View>
-        )}
-        <View style={styles.itemInfo}>
-          <Text style={[styles.itemName, { color: c.text }]} numberOfLines={1}>{p.name}</Text>
-          {p.category && <Text style={[styles.itemCat, { color: c.sub }]}>{p.category.name}</Text>}
-          <View style={styles.priceRow}>
-            {p.purchasePrice ? (
-              <Text style={[styles.priceTag, { color: c.sub }]}>
-                Keldi: {fmt(p.purchasePrice)}
+      <View style={[styles.item, { backgroundColor: c.card, borderColor: c.border }]}>
+        <TouchableOpacity
+          style={styles.itemMain}
+          onPress={() => openEdit(p)}
+          activeOpacity={0.75}
+        >
+          {imageUrl ? (
+            <Image source={{ uri: imageUrl }} style={styles.productImage} />
+          ) : (
+            <View style={[styles.iconBox, { backgroundColor: '#4F46E520' }]}>
+              <Ionicons name="cube-outline" size={20} color="#4F46E5" />
+            </View>
+          )}
+          <View style={styles.itemInfo}>
+            <Text style={[styles.itemName, { color: c.text }]} numberOfLines={1}>{p.name}</Text>
+            {p.category && <Text style={[styles.itemCat, { color: c.sub }]}>{p.category.name}</Text>}
+            <View style={styles.priceRow}>
+              {Number(p.purchasePrice ?? 0) > 0 && (
+                <Text style={[styles.priceTag, { color: c.sub }]}>
+                  Keldi: {fmt(p.purchasePrice)}
+                </Text>
+              )}
+              <Text style={[styles.priceTag, { color: '#4F46E5', fontWeight: '700' }]}>
+                Sotish: {fmt(p.salePrice)} so'm
               </Text>
-            ) : null}
-            <Text style={[styles.priceTag, { color: '#4F46E5', fontWeight: '700' }]}>
-              Sotish: {fmt(p.salePrice)} so'm
-            </Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.itemRight}>
           <View style={[styles.stockBadge, { backgroundColor: badgeColor }]}>
-            <Text style={[styles.stockText, { color: badgeText }]}>{stock} {p.unit}</Text>
+            <Text style={[styles.stockText, { color: badgeText }]}>{stock} {p.unit ?? 'kg'}</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => handleDelete(p)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{ marginTop: 6 }}
-          >
-            <Ionicons name="trash-outline" size={16} color="#EF4444" />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => handleDelete(p)}
+          style={styles.deleteBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="trash-outline" size={18} color="#EF4444" />
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -341,7 +350,13 @@ export default function MahsulotlarScreen() {
               <View style={styles.fieldWrap}>
                 <Text style={[styles.fieldLabel, { color: c.sub }]}>Mahsulot nomi *</Text>
                 <View style={[styles.fieldBox, { backgroundColor: c.input, borderColor: c.border }]}>
-                  <TextInput style={[styles.fieldInput, { color: c.text }]} value={form.name} onChangeText={f('name')} placeholder="Sement M400" placeholderTextColor={c.sub} />
+                  <TextInput
+                    style={[styles.fieldInput, { color: c.text }]}
+                    value={form.name}
+                    onChangeText={f('name')}
+                    placeholder="Sement M400"
+                    placeholderTextColor={c.sub}
+                  />
                 </View>
               </View>
 
@@ -349,13 +364,27 @@ export default function MahsulotlarScreen() {
                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                   <Text style={[styles.fieldLabel, { color: c.sub }]}>Kelgan narx</Text>
                   <View style={[styles.fieldBox, { backgroundColor: c.input, borderColor: c.border }]}>
-                    <TextInput style={[styles.fieldInput, { color: c.text }]} value={form.purchasePrice} onChangeText={f('purchasePrice')} placeholder="45000" keyboardType="numeric" placeholderTextColor={c.sub} />
+                    <TextInput
+                      style={[styles.fieldInput, { color: c.text }]}
+                      value={form.purchasePrice}
+                      onChangeText={f('purchasePrice')}
+                      placeholder="45000"
+                      keyboardType="numeric"
+                      placeholderTextColor={c.sub}
+                    />
                   </View>
                 </View>
                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                   <Text style={[styles.fieldLabel, { color: c.sub }]}>Sotuv narxi *</Text>
                   <View style={[styles.fieldBox, { backgroundColor: c.input, borderColor: c.border }]}>
-                    <TextInput style={[styles.fieldInput, { color: c.text }]} value={form.salePrice} onChangeText={f('salePrice')} placeholder="50000" keyboardType="numeric" placeholderTextColor={c.sub} />
+                    <TextInput
+                      style={[styles.fieldInput, { color: c.text }]}
+                      value={form.salePrice}
+                      onChangeText={f('salePrice')}
+                      placeholder="50000"
+                      keyboardType="numeric"
+                      placeholderTextColor={c.sub}
+                    />
                   </View>
                 </View>
               </View>
@@ -377,13 +406,25 @@ export default function MahsulotlarScreen() {
                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                   <Text style={[styles.fieldLabel, { color: c.sub }]}>Mavjud stok</Text>
                   <View style={[styles.fieldBox, { backgroundColor: c.input, borderColor: c.border }]}>
-                    <TextInput style={[styles.fieldInput, { color: c.text }]} value={form.stock} onChangeText={f('stock')} keyboardType="numeric" placeholderTextColor={c.sub} />
+                    <TextInput
+                      style={[styles.fieldInput, { color: c.text }]}
+                      value={form.stock}
+                      onChangeText={f('stock')}
+                      keyboardType="numeric"
+                      placeholderTextColor={c.sub}
+                    />
                   </View>
                 </View>
                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                   <Text style={[styles.fieldLabel, { color: c.sub }]}>Minimal stok</Text>
                   <View style={[styles.fieldBox, { backgroundColor: c.input, borderColor: c.border }]}>
-                    <TextInput style={[styles.fieldInput, { color: c.text }]} value={form.lowStockLimit} onChangeText={f('lowStockLimit')} keyboardType="numeric" placeholderTextColor={c.sub} />
+                    <TextInput
+                      style={[styles.fieldInput, { color: c.text }]}
+                      value={form.lowStockLimit}
+                      onChangeText={f('lowStockLimit')}
+                      keyboardType="numeric"
+                      placeholderTextColor={c.sub}
+                    />
                   </View>
                 </View>
               </View>
@@ -451,9 +492,13 @@ const styles = StyleSheet.create({
   list: { padding: 12, paddingTop: 4, paddingBottom: 100 },
   item: {
     flexDirection: 'row', alignItems: 'center',
-    padding: 12, borderRadius: 14, borderWidth: 1,
+    borderRadius: 14, borderWidth: 1,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 4, elevation: 2, gap: 10,
+    shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
+  },
+  itemMain: {
+    flex: 1, flexDirection: 'row', alignItems: 'center',
+    padding: 12, gap: 10,
   },
   productImage: { width: 48, height: 48, borderRadius: 10 },
   iconBox: { width: 48, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
@@ -462,9 +507,12 @@ const styles = StyleSheet.create({
   itemCat: { fontSize: 11, marginBottom: 4 },
   priceRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   priceTag: { fontSize: 12 },
-  itemRight: { alignItems: 'flex-end' },
   stockBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
   stockText: { fontSize: 12, fontWeight: '700' },
+  deleteBtn: {
+    paddingHorizontal: 14, paddingVertical: 16,
+    justifyContent: 'center', alignItems: 'center',
+  },
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyText: { fontSize: 15 },
   fab: {

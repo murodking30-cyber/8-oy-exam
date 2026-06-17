@@ -166,10 +166,10 @@ export default function MahsulotlarScreen() {
       const body = {
         name: form.name.trim(),
         salePrice: Number(form.salePrice),
-        purchasePrice: form.purchasePrice ? Number(form.purchasePrice) : 0,
+        purchasePrice: form.purchasePrice ? Number(form.purchasePrice) : undefined,
         unit: form.unit,
-        stock: form.stock ? Number(form.stock) : 0,
-        lowStockLimit: form.lowStockLimit ? Number(form.lowStockLimit) : 5,
+        stock: form.stock ? Math.floor(Number(form.stock)) : 0,
+        lowStockLimit: form.lowStockLimit ? Math.floor(Number(form.lowStockLimit)) : 5,
         image: form.image || undefined,
       };
       if (editTarget) {
@@ -404,25 +404,29 @@ export default function MahsulotlarScreen() {
 
               <View style={styles.row2}>
                 <View style={[styles.fieldWrap, { flex: 1 }]}>
-                  <Text style={[styles.fieldLabel, { color: c.sub }]}>Mavjud stok</Text>
+                  <Text style={[styles.fieldLabel, { color: c.sub }]}>Ombordagi miqdor</Text>
+                  <Text style={[styles.fieldHint, { color: c.sub }]}>Hozir omborda nechta bor</Text>
                   <View style={[styles.fieldBox, { backgroundColor: c.input, borderColor: c.border }]}>
                     <TextInput
                       style={[styles.fieldInput, { color: c.text }]}
                       value={form.stock}
                       onChangeText={f('stock')}
                       keyboardType="numeric"
+                      placeholder="0"
                       placeholderTextColor={c.sub}
                     />
                   </View>
                 </View>
                 <View style={[styles.fieldWrap, { flex: 1 }]}>
-                  <Text style={[styles.fieldLabel, { color: c.sub }]}>Minimal stok</Text>
+                  <Text style={[styles.fieldLabel, { color: c.sub }]}>Ogohlantirish chegarasi</Text>
+                  <Text style={[styles.fieldHint, { color: c.sub }]}>Kam qoldi belgisi uchun</Text>
                   <View style={[styles.fieldBox, { backgroundColor: c.input, borderColor: c.border }]}>
                     <TextInput
                       style={[styles.fieldInput, { color: c.text }]}
                       value={form.lowStockLimit}
                       onChangeText={f('lowStockLimit')}
                       keyboardType="numeric"
+                      placeholder="5"
                       placeholderTextColor={c.sub}
                     />
                   </View>
@@ -536,7 +540,8 @@ const styles = StyleSheet.create({
   sheetTitle: { fontSize: 18, fontWeight: '700' },
   row2: { flexDirection: 'row', gap: 10 },
   fieldWrap: { marginBottom: 14 },
-  fieldLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6 },
+  fieldLabel: { fontSize: 12, fontWeight: '600', marginBottom: 2 },
+  fieldHint: { fontSize: 10, marginBottom: 6, opacity: 0.7 },
   fieldBox: { borderRadius: 12, borderWidth: 1, paddingHorizontal: 12 },
   fieldInput: { fontSize: 15, paddingVertical: 12 },
   pickerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

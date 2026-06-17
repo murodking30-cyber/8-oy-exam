@@ -10,6 +10,9 @@ export enum UserRole {
   ADMIN = 'admin',
   KASSIR = 'kassir',
   OMBORCHI = 'omborchi',
+  EMPLOYEE = 'employee',
+  MANAGER = 'manager',
+  USER = 'user',
 }
 
 @Entity('users')

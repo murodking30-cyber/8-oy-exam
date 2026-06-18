@@ -105,7 +105,7 @@ export default function MahsulotlarScreen() {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'images',
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -113,21 +113,24 @@ export default function MahsulotlarScreen() {
     if (result.canceled || !result.assets[0]) return;
 
     const asset = result.assets[0];
+    const ext = asset.uri.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const fileName = asset.fileName ?? `photo_${Date.now()}.${ext}`;
+    const mimeType = asset.mimeType ?? `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('file', {
-        uri: asset.uri,
-        name: asset.fileName ?? 'photo.jpg',
-        type: asset.mimeType ?? 'image/jpeg',
-      } as never);
+      formData.append('file', { uri: asset.uri, name: fileName, type: mimeType } as never);
 
       const res = await api.post<{ url: string }>('/upload/image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        transformRequest: (data) => data,
       });
       setForm((prev) => ({ ...prev, image: res.data.url }));
-    } catch {
-      Alert.alert('Xatolik', "Rasm yuklashda xatolik yuz berdi");
+    } catch (e: unknown) {
+      const raw = (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw[0] : (raw ?? 'Rasm yuklashda xatolik');
+      Alert.alert('Xatolik', msg);
     } finally {
       setUploading(false);
     }
@@ -181,9 +184,11 @@ export default function MahsulotlarScreen() {
       }
       setModalVisible(false);
     } catch (e: unknown) {
-      const raw = (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
-      const msg = Array.isArray(raw) ? raw[0] : raw;
-      setFormError(msg ?? 'Saqlashda xatolik');
+      const err = e as { response?: { data?: { message?: string | string[] }; status?: number } };
+      const raw = err?.response?.data?.message;
+      const status = err?.response?.status;
+      const msg = Array.isArray(raw) ? raw.join(', ') : raw;
+      setFormError(msg ?? `Saqlashda xatolik (${status ?? 'tarmoq xatosi'})`);
     } finally {
       setSaving(false);
     }

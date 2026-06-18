@@ -42,8 +42,7 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      const { contact } = await register(fullName.trim(), email.trim(), phone.trim(), password);
-      router.replace({ pathname: '/verify', params: { contact } } as never);
+      await register(fullName.trim(), email.trim(), phone.trim(), password);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string | string[] } }; message?: string };
       console.log('[Register Error]', e.response?.data ?? e.message ?? err);

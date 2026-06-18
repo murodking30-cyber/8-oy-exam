@@ -38,9 +38,6 @@ export class AuthService {
     const userCount = await this.userRepo.count();
     const role = userCount === 0 ? UserRole.ADMIN : UserRole.OMBORCHI;
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
     const hashed = await bcrypt.hash(dto.password, 10);
     const user = this.userRepo.create({
       firstName,
@@ -49,17 +46,14 @@ export class AuthService {
       phone: dto.phone,
       password: hashed,
       role,
-      isVerified: false,
-      verificationCode: code,
-      verificationCodeExpiresAt: expiresAt,
+      isVerified: true,
     });
     await this.userRepo.save(user);
 
-    await this.emailService.sendEmailCode(dto.email, code);
-
     return {
-      message: "Ro'yxatdan o'tdingiz! Emailga yuborilgan tasdiqlash kodini kiriting.",
-      contact: dto.email,
+      message: "Ro'yxatdan o'tdingiz!",
+      user: this.stripSensitive(user),
+      token: this.sign(user),
     };
   }
 

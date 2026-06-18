@@ -64,13 +64,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const register = useCallback(async (fullName: string, email: string, phone: string, password: string) => {
-    const res = await api.post<{ message: string; contact: string }>('/auth/register', {
+    const res = await api.post<{ message: string; user?: User; token?: string; contact?: string }>('/auth/register', {
       fullName,
       email,
       phone,
       password,
     });
-    return { contact: res.data.contact };
+    if (res.data.token && res.data.user) {
+      await AsyncStorage.setItem('token', res.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+      setToken(res.data.token);
+      setUser(res.data.user);
+      router.replace('/(tabs)');
+    }
+    return { contact: res.data.contact ?? email };
   }, []);
 
   const verify = useCallback(async (emailOrPhone: string, code: string) => {

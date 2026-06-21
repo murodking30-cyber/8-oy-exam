@@ -5,11 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Category } from '../../categories/entities/category.entity';
-import { OrderItem } from '../../orders/entities/order-item.entity';
 
 @Entity('products')
 export class Product {
@@ -55,9 +53,6 @@ export class Product {
 
   @Column({ nullable: true })
   categoryId: number;
-
-  @OneToMany(() => OrderItem, (item) => item.product)
-  orderItems: OrderItem[];
 
   @CreateDateColumn()
   createdAt: Date;

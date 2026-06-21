@@ -135,17 +135,18 @@ export class AuthService {
       throw new UnauthorizedException("Elektron pochta/telefon yoki parol noto'g'ri");
     }
 
+    // Auto-verify all users — no email verification required
     if (!user.isVerified) {
-      // Legacy users created before email verification was added have no pending code
-      if (!user.verificationCode) {
-        await this.userRepo.update({ id: user.id }, { isVerified: true });
-      } else {
-        throw new UnauthorizedException('Avval tasdiqlash kodini kiriting');
-      }
+      await this.userRepo.update({ id: user.id }, { isVerified: true, verificationCode: null, verificationCodeExpiresAt: null });
     }
 
-    const valid = await bcrypt.compare(dto.password, (user as any).password);
-    if (!valid) throw new UnauthorizedException("Elektron pochta/telefon yoki parol noto'g'ri");
+    const password = (user as User & { password?: string }).password;
+    if (!password) {
+      throw new UnauthorizedException("Bu hisob Google orqali yaratilgan. Google bilan kiring.");
+    }
+
+    const valid = await bcrypt.compare(dto.password, password);
+    if (!valid) throw new UnauthorizedException("Parol noto'g'ri");
 
     return { message: 'Kirish muvaffaqiyatli', user: this.stripSensitive(user), token: this.sign(user) };
   }

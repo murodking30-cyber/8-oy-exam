@@ -20,7 +20,7 @@ export class OrderItem {
   @Column()
   orderId: number;
 
-  @ManyToOne(() => Product, (product) => product.orderItems, {
+  @ManyToOne(() => Product, {
     eager: true,
     nullable: true,
     onDelete: 'SET NULL',

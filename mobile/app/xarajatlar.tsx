@@ -12,11 +12,11 @@ function fmt(n: number) { return n.toLocaleString('uz-UZ') + " so'm"; }
 function today() { return new Date().toISOString().split('T')[0]; }
 
 const CATEGORIES: { key: string; label: string; icon: string; color: string }[] = [
-  { key: 'ELEKTR', label: 'Elektr', icon: 'flash-outline', color: '#EAB308' },
-  { key: 'TRANSPORT', label: 'Transport', icon: 'car-outline', color: '#3B82F6' },
-  { key: 'ISH_HAQI', label: 'Ish haqi', icon: 'people-outline', color: '#8B5CF6' },
-  { key: 'INTERNET', label: 'Internet', icon: 'wifi-outline', color: '#06B6D4' },
-  { key: 'BOSHQA', label: 'Boshqa', icon: 'ellipsis-horizontal-outline', color: '#6B7280' },
+  { key: 'elektr', label: 'Elektr', icon: 'flash-outline', color: '#EAB308' },
+  { key: 'transport', label: 'Transport', icon: 'car-outline', color: '#3B82F6' },
+  { key: 'ish_haqi', label: 'Ish haqi', icon: 'people-outline', color: '#8B5CF6' },
+  { key: 'internet', label: 'Internet', icon: 'wifi-outline', color: '#06B6D4' },
+  { key: 'boshqa', label: 'Boshqa', icon: 'ellipsis-horizontal-outline', color: '#6B7280' },
 ];
 
 const catMeta = (key: string) => CATEGORIES.find((c) => c.key === key) ?? CATEGORIES[4];
@@ -31,7 +31,7 @@ export default function XarajatlarScreen() {
   const [catFilter, setCatFilter] = useState<string>('ALL');
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ category: 'BOSHQA', amount: '', date: today(), note: '' });
+  const [form, setForm] = useState({ category: 'boshqa', amount: '', date: today(), note: '' });
 
   const c = {
     bg: dark ? '#0F172A' : '#F8FAFC',
@@ -53,7 +53,7 @@ export default function XarajatlarScreen() {
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = catFilter === 'ALL' ? list : list.filter((e) => e.category === catFilter);
+  const filtered = catFilter === 'ALL' ? list : list.filter((e) => e.category.toLowerCase() === catFilter);
   const totalSum = filtered.reduce((s, e) => s + Number(e.amount), 0);
 
   const monthStr = today().slice(0, 7);

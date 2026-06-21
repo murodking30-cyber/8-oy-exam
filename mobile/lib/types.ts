@@ -75,7 +75,7 @@ export interface Debtor {
   note?: string | null;
 }
 
-export type ExpenseCategory = 'ELEKTR' | 'TRANSPORT' | 'ISH_HAQI' | 'INTERNET' | 'BOSHQA';
+export type ExpenseCategory = 'elektr' | 'transport' | 'ish_haqi' | 'internet' | 'boshqa';
 
 export interface Expense {
   id: number;

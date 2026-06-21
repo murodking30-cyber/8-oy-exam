@@ -42,11 +42,6 @@ export default function LoginScreen() {
       const raw = e.response?.data?.message;
       const msg = Array.isArray(raw) ? raw[0] : (raw ?? '');
 
-      // Backend: "Avval tasdiqlash kodini kiriting" → go to verify screen
-      if (msg && msg.toLowerCase().includes('tasdiqlash')) {
-        router.push({ pathname: '/verify', params: { contact: emailVal } } as never);
-        return;
-      }
       if (msg) {
         setError(msg);
       } else if (!e.response) {

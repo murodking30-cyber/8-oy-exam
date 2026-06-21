@@ -41,10 +41,16 @@ export class ReportsService {
   }
 
   private async getSalesSummary(from: string, to: string) {
+    // Gross profit = sale price - purchase price of each sold item
     const sales = await this.stockOutRepo
       .createQueryBuilder('so')
+      .leftJoin('so.product', 'p')
       .select('COALESCE(SUM(so.totalAmount),0)', 'totalAmount')
       .addSelect('COALESCE(SUM(so.quantity),0)', 'totalQuantity')
+      .addSelect(
+        'COALESCE(SUM(so.totalAmount - so.quantity * CAST(p.purchasePrice AS decimal)),0)',
+        'grossProfit',
+      )
       .where('so.date >= :from', { from })
       .andWhere('so.date <= :to', { to })
       .getRawOne();
@@ -58,12 +64,13 @@ export class ReportsService {
 
     const totalAmount = Number(sales?.totalAmount ?? 0);
     const totalCost = Number(purchases?.totalCost ?? 0);
+    const grossProfit = Number(sales?.grossProfit ?? 0);
     const expenses = await this.getExpenseSum(from, to);
     return {
       sales: totalAmount,
       purchases: totalCost,
       expenses,
-      profit: totalAmount - totalCost - expenses,
+      profit: grossProfit - expenses,
       soldQuantity: Number(sales?.totalQuantity ?? 0),
     };
   }

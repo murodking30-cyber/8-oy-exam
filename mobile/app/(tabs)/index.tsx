@@ -13,17 +13,19 @@ function fmt(n: number) {
 }
 
 function StatCard({
-  label, value, icon, gradient,
+  label, value, icon, gradient, negative, hint,
 }: {
-  label: string; value: string; icon: string; gradient: [string, string];
+  label: string; value: string; icon: string; gradient: [string, string]; negative?: boolean; hint?: string;
 }) {
+  const bg = negative ? '#DC2626' : gradient[0];
   return (
-    <View style={[styles.statCard, { backgroundColor: gradient[0] }]}>
+    <View style={[styles.statCard, { backgroundColor: bg }]}>
       <View style={styles.statIconWrap}>
-        <Ionicons name={icon as never} size={22} color="#fff" />
+        <Ionicons name={negative ? 'trending-down' : icon as never} size={22} color="#fff" />
       </View>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
+      {hint ? <Text style={styles.statHint}>{hint}</Text> : null}
     </View>
   );
 }
@@ -90,12 +92,15 @@ export default function DashboardScreen() {
               value={fmt(stats?.today.sales ?? 0)}
               icon="trending-up"
               gradient={['#4F46E5', '#6366F1']}
+              hint="Bugun sotilgan tovar summasi"
             />
             <StatCard
-              label="Bugungi foyda"
-              value={fmt(stats?.today.profit ?? 0)}
+              label="Bugungi sof foyda"
+              value={fmt(Math.abs(stats?.today.profit ?? 0))}
               icon="wallet"
               gradient={['#059669', '#10B981']}
+              negative={(stats?.today.profit ?? 0) < 0}
+              hint={(stats?.today.profit ?? 0) < 0 ? "Xarajat savdodan ko'p" : "Savdo − kelish narxi − xarajat"}
             />
           </View>
 
@@ -107,12 +112,15 @@ export default function DashboardScreen() {
               value={fmt(stats?.thisMonth.sales ?? 0)}
               icon="bar-chart"
               gradient={['#0EA5E9', '#38BDF8']}
+              hint="Bu oy sotilgan tovar summasi"
             />
             <StatCard
-              label="Oylik foyda"
-              value={fmt(stats?.thisMonth.profit ?? 0)}
+              label="Oylik sof foyda"
+              value={fmt(Math.abs(stats?.thisMonth.profit ?? 0))}
               icon="cash"
               gradient={['#F59E0B', '#FBBF24']}
+              negative={(stats?.thisMonth.profit ?? 0) < 0}
+              hint={(stats?.thisMonth.profit ?? 0) < 0 ? "Xarajat savdodan ko'p" : "Savdo − kelish narxi − xarajat"}
             />
           </View>
 
@@ -123,12 +131,14 @@ export default function DashboardScreen() {
               value={fmt(stats?.thisYear.sales ?? 0)}
               icon="calendar"
               gradient={['#8B5CF6', '#A78BFA']}
+              hint="Bu yil jami savdo"
             />
             <StatCard
-              label="Jami xarajat"
+              label="Oylik xarajat"
               value={fmt(stats?.thisMonth.expenses ?? 0)}
               icon="receipt"
               gradient={['#EF4444', '#F87171']}
+              hint="Elektr, transport va boshqa"
             />
           </View>
 
@@ -225,6 +235,7 @@ const styles = StyleSheet.create({
   },
   statValue: { color: '#fff', fontSize: 17, fontWeight: '800', marginBottom: 4 },
   statLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: '500' },
+  statHint: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 4 },
   summaryRow: {
     flexDirection: 'row', borderRadius: 16, borderWidth: 1,
     padding: 16, marginBottom: 20,
